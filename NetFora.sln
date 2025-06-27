@@ -9,6 +9,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFora.Api", "src\NetFora.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFora.Tests", "src\NetFora.Tests\NetFora.Tests.csproj", "{ABCA4FB8-A32B-4A5E-838A-B914A1F78291}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		docker-compose.yml = docker-compose.yml
+		Dockerfile = Dockerfile
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,5 +58,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{DC930CAF-23AB-4B42-87E1-CF602268BDE8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{ABCA4FB8-A32B-4A5E-838A-B914A1F78291} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3FCE9034-64E6-4AB8-9BCF-C3822946DE7F}
 	EndGlobalSection
 EndGlobal

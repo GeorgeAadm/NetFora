@@ -17,11 +17,25 @@ x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
+build/
 bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+
+# Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio cache files
+*.VisualState.xml
+*.VisualState.xml.bak
 
 # .NET Core
 project.lock.json
@@ -52,3 +66,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Publish profiles (sensitive data)
+PublishProfiles/
+*.pubxml
+*.publishproj
