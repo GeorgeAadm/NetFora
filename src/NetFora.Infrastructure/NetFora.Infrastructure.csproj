@@ -11,6 +11,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\NetFora.Application\NetFora.Application.csproj" />
 		<ProjectReference Include="..\NetFora.Domain\NetFora.Domain.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Repositories\" />
 	</ItemGroup>
 </Project>

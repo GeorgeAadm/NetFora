@@ -52,19 +52,25 @@ namespace NetFora.Infrastructure.Services
         {
             var now = DateTime.UtcNow;
 
-            // Mark like events as processed
-            await _context.LikeEvents
-                .Where(e => likeEventIds.Contains(e.Id))
-                .ExecuteUpdateAsync(e => e
-                    .SetProperty(x => x.Processed, true)
-                    .SetProperty(x => x.ProcessedAt, now));
+            if (likeEventIds.Any())
+            {
+                // Mark like events as processed
+                await _context.LikeEvents
+                    .Where(e => likeEventIds.Contains(e.Id))
+                    .ExecuteUpdateAsync(e => e
+                        .SetProperty(x => x.Processed, true)
+                        .SetProperty(x => x.ProcessedAt, now));
+            }
 
-            // Mark comment events as processed
-            await _context.CommentEvents
-                .Where(e => commentEventIds.Contains(e.Id))
-                .ExecuteUpdateAsync(e => e
-                    .SetProperty(x => x.Processed, true)
-                    .SetProperty(x => x.ProcessedAt, now));
+            if (commentEventIds.Any())
+            {
+                // Mark comment events as processed
+                await _context.CommentEvents
+                    .Where(e => commentEventIds.Contains(e.Id))
+                    .ExecuteUpdateAsync(e => e
+                        .SetProperty(x => x.Processed, true)
+                        .SetProperty(x => x.ProcessedAt, now));
+            }
         }
     }
 }

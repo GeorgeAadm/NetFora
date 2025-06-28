@@ -9,11 +9,8 @@ namespace NetFora.Application.Services
 {
     public class PostService : IPostService
     {
-        private readonly IEventService _eventService;
-
-        public PostService(IEventService eventService)
+        public PostService()
         {
-            _eventService = eventService;
         }
 
         // Business logic implementation - maps from Domain entities to DTOs

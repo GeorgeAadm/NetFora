@@ -31,17 +31,14 @@ namespace NetFora.Infrastructure.Data
                 entity.Property(p => p.Content).IsRequired();
                 entity.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                // Relationship with ApplicationUser
                 entity.HasOne(p => p.Author)
                       .WithMany(u => u.Posts)
                       .HasForeignKey(p => p.AuthorId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Relationship with PostStats
                 entity.HasOne(p => p.Stats)
                       .WithOne(s => s.Post)
                       .HasForeignKey<PostStats>(s => s.PostId);
-
 
                 entity.HasIndex(p => p.CreatedAt);
                 entity.HasIndex(p => p.AuthorId);
@@ -55,7 +52,6 @@ namespace NetFora.Infrastructure.Data
                 entity.Property(c => c.Content).IsRequired();
                 entity.Property(c => c.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                // Relationships
                 entity.HasOne(c => c.Post)
                       .WithMany(p => p.Comments)
                       .HasForeignKey(c => c.PostId)
@@ -65,7 +61,6 @@ namespace NetFora.Infrastructure.Data
                       .WithMany(u => u.Comments)
                       .HasForeignKey(c => c.AuthorId)
                       .OnDelete(DeleteBehavior.Cascade);
-
 
                 entity.HasIndex(c => c.PostId);
                 entity.HasIndex(c => c.AuthorId);
@@ -79,10 +74,8 @@ namespace NetFora.Infrastructure.Data
                 entity.HasKey(l => l.Id);
                 entity.Property(l => l.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                // Unique constraint
                 entity.HasIndex(l => new { l.PostId, l.UserId }).IsUnique();
 
-                // Relationships
                 entity.HasOne(l => l.Post)
                       .WithMany(p => p.Likes)
                       .HasForeignKey(l => l.PostId)
@@ -93,7 +86,6 @@ namespace NetFora.Infrastructure.Data
                       .HasForeignKey(l => l.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-
                 entity.HasIndex(l => l.UserId);
             });
 
@@ -103,7 +95,6 @@ namespace NetFora.Infrastructure.Data
                 entity.HasKey(s => s.PostId);
                 entity.Property(s => s.LastUpdated).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(s => s.Version).HasDefaultValue(1);
-
 
                 entity.HasOne(s => s.Post)
                       .WithOne(p => p.Stats)
@@ -118,7 +109,6 @@ namespace NetFora.Infrastructure.Data
                 entity.Property(e => e.Action).IsRequired().HasMaxLength(10);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                // Indexes for processing
                 entity.HasIndex(e => new { e.Processed, e.CreatedAt });
                 entity.HasIndex(e => e.PostId);
             });
@@ -130,7 +120,6 @@ namespace NetFora.Infrastructure.Data
                 entity.Property(e => e.Action).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
-                // Indexes for processing
                 entity.HasIndex(e => new { e.Processed, e.CreatedAt });
                 entity.HasIndex(e => e.PostId);
             });
