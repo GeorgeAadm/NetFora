@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		docker-compose.yml = docker-compose.yml
 		Dockerfile = Dockerfile
+		InitialCreate.sql = InitialCreate.sql
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -22,6 +23,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFora.Infrastructure", "src\NetFora.Infrastructure\NetFora.Infrastructure.csproj", "{32483BF0-D038-4AD9-ACDB-F4BE4B22B523}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFora.EventProcessor", "src\NetFora.EventProcessor\NetFora.EventProcessor.csproj", "{7D5FE383-058E-4F88-9E2F-CF7FBB7E5E7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFora.Application", "src\NetFora.Application\NetFora.Application.csproj", "{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +96,18 @@ Global
 		{7D5FE383-058E-4F88-9E2F-CF7FBB7E5E7E}.Release|x64.Build.0 = Release|Any CPU
 		{7D5FE383-058E-4F88-9E2F-CF7FBB7E5E7E}.Release|x86.ActiveCfg = Release|Any CPU
 		{7D5FE383-058E-4F88-9E2F-CF7FBB7E5E7E}.Release|x86.Build.0 = Release|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Debug|x64.Build.0 = Debug|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Release|x64.ActiveCfg = Release|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Release|x64.Build.0 = Release|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,6 +118,7 @@ Global
 		{7C1ED178-3FD6-4434-82F4-B79FAA0CFFCD} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{32483BF0-D038-4AD9-ACDB-F4BE4B22B523} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{7D5FE383-058E-4F88-9E2F-CF7FBB7E5E7E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{5F4F206A-7902-4FAB-AD3C-84A45DD165A2} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3FCE9034-64E6-4AB8-9BCF-C3822946DE7F}
