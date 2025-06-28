@@ -1,4 +1,6 @@
-﻿namespace NetFora.Api.DTOs.Posts
+﻿using System;
+
+namespace NetFora.Api.DTOs.Posts
 {
     public class PostResponse
     {

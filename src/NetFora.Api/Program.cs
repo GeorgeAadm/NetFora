@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using NetFora.Api.Data;
-using NetFora.Api.Models;
+using NetFora.Domain.Models;
+using NetFora.Infrastructure.Data;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);

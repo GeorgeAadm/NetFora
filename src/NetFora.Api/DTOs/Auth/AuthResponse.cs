@@ -1,4 +1,6 @@
-﻿namespace NetFora.Api.DTOs.Auth
+﻿using System;
+
+namespace NetFora.Api.DTOs.Auth
 {
     public class AuthResponse
     {
