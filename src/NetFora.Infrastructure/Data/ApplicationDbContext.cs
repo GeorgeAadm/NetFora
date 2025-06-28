@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using NetFora.Domain.Entities;
 using NetFora.Domain.Events;
-using NetFora.Domain.Models;
 
 namespace NetFora.Infrastructure.Data
 {

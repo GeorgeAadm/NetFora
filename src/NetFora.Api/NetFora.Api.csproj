@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NetFora.Application\NetFora.Application.csproj" />
     <ProjectReference Include="..\NetFora.Domain\NetFora.Domain.csproj" />
     <ProjectReference Include="..\NetFora.Infrastructure\NetFora.Infrastructure.csproj" />
   </ItemGroup>

@@ -1,4 +1,7 @@
-﻿namespace NetFora.Application.DTOs
+﻿using System;
+using System.Collections.Generic;
+
+namespace NetFora.Application.DTOs
 {
     public class PostDetailDto : PostDto
     {

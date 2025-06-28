@@ -1,4 +1,6 @@
-﻿namespace NetFora.Application.DTOs
+﻿using System;
+
+namespace NetFora.Application.DTOs
 {
     public class UserProfileDto
     {

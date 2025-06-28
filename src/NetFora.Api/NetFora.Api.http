@@ -1,6 +1,0 @@
-@NetFora.Api_HostAddress = http://localhost:5001
-
-GET {{NetFora.Api_HostAddress}}/posts/
-Accept: application/json
-
-###

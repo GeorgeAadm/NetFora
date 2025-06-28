@@ -1,4 +1,5 @@
-﻿using NetFora.Application.DTOs;
+﻿using System.Threading.Tasks;
+using NetFora.Application.DTOs;
 
 namespace NetFora.Application.Interfaces
 {

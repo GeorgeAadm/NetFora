@@ -1,4 +1,6 @@
-﻿namespace NetFora.Application.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace NetFora.Application.Interfaces
 {
     public interface ILikeService
     {

@@ -1,4 +1,5 @@
-﻿using NetFora.Domain.Common;
+﻿using System;
+using NetFora.Domain.Common;
 
 namespace NetFora.Application.QueryParameters
 {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using NetFora.Domain.Models;
+using NetFora.Domain.Entities;
 using NetFora.Infrastructure.Data;
 using System;
 using System.Text;

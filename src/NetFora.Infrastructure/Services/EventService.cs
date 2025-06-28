@@ -5,17 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NetFora.Domain.Events;
 using NetFora.Infrastructure.Data;
+using NetFora.Infrastructure.Interfaces;
 
 namespace NetFora.Infrastructure.Services
 {
-    public interface IEventService
-    {
-        Task PublishLikeEventAsync(LikeEvent likeEvent);
-        Task PublishCommentEventAsync(CommentEvent commentEvent);
-        Task<List<LikeEvent>> GetUnprocessedLikeEventsAsync(int batchSize = 100);
-        Task<List<CommentEvent>> GetUnprocessedCommentEventsAsync(int batchSize = 100);
-        Task MarkEventsAsProcessedAsync(IEnumerable<long> likeEventIds, IEnumerable<long> commentEventIds);
-    }
     public class EventService : IEventService
     {
         private readonly ApplicationDbContext _context;

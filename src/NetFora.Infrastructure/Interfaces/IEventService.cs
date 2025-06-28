@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NetFora.Domain.Events;
 
-namespace NetFora.Application.Interfaces
+namespace NetFora.Infrastructure.Interfaces
 {
     public interface IEventService
     {
