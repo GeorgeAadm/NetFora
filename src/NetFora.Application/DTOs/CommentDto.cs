@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetFora.Application.DTOs
+﻿namespace NetFora.Application.DTOs
 {
-    internal class CommentDto
+    public class CommentDto
     {
+        public int Id { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public int ModerationFlags { get; set; }
+
+        public string AuthorName { get; set; } = string.Empty;
+        public bool IsCurrentUserAuthor { get; set; }
+
+        public bool IsMisleading => (ModerationFlags & 1) > 0;
+        public bool IsFalse => (ModerationFlags & 2) > 0;
+        public bool IsFlagged => ModerationFlags > 0;
     }
 }

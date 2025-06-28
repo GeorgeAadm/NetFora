@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NetFora.Application.DTOs;
 
 namespace NetFora.Application.Interfaces
 {
-    internal interface IModerationService
+    public interface IModerationService
     {
+        Task<bool> ModeratePostAsync(int postId, int flags, string moderatorId);
+        Task<bool> ModerateCommentAsync(int commentId, int flags, string moderatorId);
+        Task<IEnumerable<PostDto>> GetFlaggedPostsAsync();
+        Task<IEnumerable<CommentDto>> GetFlaggedCommentsAsync();
     }
 }

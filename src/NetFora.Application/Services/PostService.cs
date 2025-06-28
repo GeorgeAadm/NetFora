@@ -7,16 +7,13 @@ namespace NetFora.Application.Services
 {
     public class PostService : IPostService
     {
-        /*
-        private readonly IPostRepository _postRepository;
         private readonly IEventService _eventService;
 
-        public PostService(IPostRepository postRepository, IEventService eventService)
+        public PostService(IEventService eventService)
         {
-            _postRepository = postRepository;
             _eventService = eventService;
         }
-*/
+
         // Business logic implementation - maps from Domain entities to DTOs
         public async Task<PagedResult<PostDto>> GetPostsAsync(PostQueryParameters parameters, string? currentUserId = null)
         {
@@ -28,7 +25,7 @@ namespace NetFora.Application.Services
             throw new NotImplementedException();
         }
 
-        public Task<PostDto?> GetPostByIdAsync(int id, string? currentUserId = null)
+        public Task<PostDetailDto?> GetPostByIdAsync(int id, string? currentUserId)
         {
             throw new NotImplementedException();
         }

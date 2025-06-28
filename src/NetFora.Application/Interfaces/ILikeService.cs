@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NetFora.Application.Interfaces
+﻿namespace NetFora.Application.Interfaces
 {
-    internal interface ILikeService
+    public interface ILikeService
     {
+        Task<bool> LikePostAsync(int postId, string userId);
+        Task<bool> UnlikePostAsync(int postId, string userId);
+        Task<bool> IsPostLikedByUserAsync(int postId, string userId);
+        Task<int> GetLikeCountAsync(int postId);
     }
 }

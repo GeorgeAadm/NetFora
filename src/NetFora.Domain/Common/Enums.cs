@@ -9,6 +9,12 @@
         AuthorName
     }
 
+    public enum CommentSortBy
+    {
+        CreatedDate,
+        AuthorName
+    }
+
     public enum SortDirection
     {
         Ascending,
