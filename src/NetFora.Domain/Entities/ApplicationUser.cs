@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.AspNetCore.Identity;
 
-namespace NetFora.Domain.Models
+namespace NetFora.Domain.Entities
 {
     public class ApplicationUser : IdentityUser
     {

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace NetFora.Domain.Models
+namespace NetFora.Domain.Entities
 {
     public class Like
     {
