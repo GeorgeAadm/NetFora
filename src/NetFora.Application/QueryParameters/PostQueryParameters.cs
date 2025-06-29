@@ -13,7 +13,8 @@ namespace NetFora.Application.QueryParameters
         public DateTime? DateTo { get; set; }
 
 
-        public string? AuthorName { get; set; }
+        public string? AuthorDisplayName { get; set; }
+        public string? AuthorUserName { get; set; }
 
 
         public string? SearchTerm { get; set; }

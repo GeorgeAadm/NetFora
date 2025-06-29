@@ -68,7 +68,8 @@ namespace NetFora.Application.Services
                 Content = commentWithAuthor.Content,
                 CreatedAt = commentWithAuthor.CreatedAt,
                 ModerationFlags = commentWithAuthor.ModerationFlags,
-                AuthorName = commentWithAuthor.Author.DisplayName,
+                AuthorDisplayName = commentWithAuthor.Author.DisplayName,
+                AuthorUserName = commentWithAuthor.Author.UserName,
                 IsCurrentUserAuthor = true
             };
         }

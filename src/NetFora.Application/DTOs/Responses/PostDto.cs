@@ -10,7 +10,9 @@ namespace NetFora.Application.DTOs.Responses
         public DateTime CreatedAt { get; set; }
         public int ModerationFlags { get; set; }
 
-        public string AuthorName { get; set; } = string.Empty;
+
+        public string AuthorDisplayName { get; set; } = string.Empty;
+        public string AuthorUserName { get; set; } = string.Empty;
         public bool IsCurrentUserAuthor { get; set; }
 
         public int LikeCount { get; set; }

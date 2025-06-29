@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NetFora.Application.DTOs.Requests;
@@ -25,9 +26,15 @@ namespace NetFora.Api.Controllers
             _logger = logger;
         }
 
-        // GET /api/posts
+        /// <summary>
+        /// Get posts with filtering, sorting, and pagination
+        /// Supports all scenarios: all posts, posts by specific user, filtered posts
+        /// </summary>
+        /// <param name="parameters">Query parameters for filtering and pagination</param>
+        /// <returns>Paginated list of posts</returns>
         [HttpGet]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(PagedResult<PostDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResult<PostDto>>> GetPosts([FromQuery] PostQueryParameters parameters)
         {
             try
@@ -43,9 +50,15 @@ namespace NetFora.Api.Controllers
             }
         }
 
-        // GET /api/posts/{id}
+        /// <summary>
+        /// Get a specific post by ID
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <returns>Post details with comments</returns>
         [HttpGet("{id}")]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(PostDetailDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PostDetailDto>> GetPost(int id)
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -57,9 +70,16 @@ namespace NetFora.Api.Controllers
             return Ok(post);
         }
 
-        // POST /api/posts
+        /// <summary>
+        /// Create a new post
+        /// </summary>
+        /// <param name="request">Post creation request</param>
+        /// <returns>Created post</returns>
         [HttpPost]
         [Authorize]
+        [ProducesResponseType(typeof(PostDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostRequest request)
         {
             if (!ModelState.IsValid)

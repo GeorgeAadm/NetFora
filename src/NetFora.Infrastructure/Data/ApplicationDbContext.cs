@@ -24,6 +24,13 @@ namespace NetFora.Infrastructure.Data
             base.OnModelCreating(builder);
 
 
+            builder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(u => u.UserName)
+                      .IsRequired()
+                      .HasMaxLength(256);
+            });
+
             builder.Entity<Post>(entity =>
             {
                 entity.HasKey(p => p.Id);

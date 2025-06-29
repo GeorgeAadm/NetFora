@@ -13,5 +13,4 @@ public interface IPostService
     Task<PostDto> CreatePostAsync(CreatePostRequest request, string authorId);
     Task<bool> PostExistsAsync(int postId);
     Task<bool> IsUserPostAuthorAsync(int postId, string userId);
-    Task<PagedResult<PostDto>> GetUserPostsAsync(string userId, PostQueryParameters parameters);
 }

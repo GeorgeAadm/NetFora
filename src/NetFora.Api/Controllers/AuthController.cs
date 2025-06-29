@@ -58,9 +58,23 @@ public class AuthController : ControllerBase
 
         try
         {
+            var existingUserByUserName = await _userManager.FindByNameAsync(request.UserName);
+            if (existingUserByUserName != null)
+            {
+                ModelState.AddModelError("UserName", "This username is already taken");
+                return BadRequest(ModelState);
+            }
+
+            var existingUserByEmail = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUserByEmail != null)
+            {
+                ModelState.AddModelError("Email", "This email is already registered");
+                return BadRequest(ModelState);
+            }
+
             var user = new ApplicationUser
             {
-                UserName = request.Email,
+                UserName = request.UserName,
                 Email = request.Email,
                 DisplayName = request.DisplayName,
                 CreatedAt = DateTime.UtcNow

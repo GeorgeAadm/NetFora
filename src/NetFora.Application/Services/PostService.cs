@@ -43,27 +43,45 @@ namespace NetFora.Application.Services
 
                 var postDtos = new List<PostDto>();
 
+                // Determine if we're filtering by a specific author
+                var isFilteringBySpecificAuthor = !string.IsNullOrEmpty(parameters.AuthorUserName);
+                var isCurrentUserPosts = isFilteringBySpecificAuthor &&
+                                       !string.IsNullOrEmpty(currentUserId) &&
+                                       posts.Any() &&
+                                       posts.First().AuthorId == currentUserId;
+
                 if (!string.IsNullOrEmpty(currentUserId))
                 {
-                    // Check likes for posts NOT authored by current user
-                    var postsNotByUser = posts.Where(p => p.AuthorId != currentUserId).Select(p => p.Id).ToList();
-
-                    Dictionary<int, bool> likeStatuses = new();
-                    if (postsNotByUser.Any())
+                    // If filtering by current user's posts, skip like checking (can't like own posts)
+                    if (isCurrentUserPosts)
                     {
-                        likeStatuses = await _likeRepository.GetUserLikeStatusForPostsAsync(postsNotByUser, currentUserId);
+                        foreach (var post in posts)
+                        {
+                            postDtos.Add(MapToPostDto(post, currentUserId, false)); // Always false for own posts
+                        }
                     }
-
-                    foreach (var post in posts)
+                    else
                     {
-                        // User's own posts: cannot be liked by them
-                        var isLiked = post.AuthorId != currentUserId && likeStatuses.GetValueOrDefault(post.Id, false);
-                        postDtos.Add(MapToPostDto(post, currentUserId, isLiked));
+                        // General case: check likes for posts NOT authored by current user
+                        var postsNotByUser = posts.Where(p => p.AuthorId != currentUserId).Select(p => p.Id).ToList();
+
+                        Dictionary<int, bool> likeStatuses = new();
+                        if (postsNotByUser.Any())
+                        {
+                            // TODO: Implement this method in ILikeRepository
+                            likeStatuses = await _likeRepository.GetUserLikeStatusForPostsAsync(postsNotByUser, currentUserId);
+                        }
+
+                        foreach (var post in posts)
+                        {
+                            var isLiked = post.AuthorId != currentUserId && likeStatuses.GetValueOrDefault(post.Id, false);
+                            postDtos.Add(MapToPostDto(post, currentUserId, isLiked));
+                        }
                     }
                 }
                 else
                 {
-                    // Anonymous users - no likes to check
+                    // Anonymous user - no like checking needed
                     foreach (var post in posts)
                     {
                         postDtos.Add(MapToPostDto(post, null, false));
@@ -118,7 +136,8 @@ namespace NetFora.Application.Services
                     Content = postDto.Content,
                     CreatedAt = postDto.CreatedAt,
                     ModerationFlags = postDto.ModerationFlags,
-                    AuthorName = postDto.AuthorName,
+                    AuthorDisplayName = postDto.AuthorDisplayName,
+                    AuthorUserName = postDto.AuthorUserName,
                     IsCurrentUserAuthor = postDto.IsCurrentUserAuthor,
                     LikeCount = postDto.LikeCount,
                     CommentCount = postDto.CommentCount,
@@ -132,30 +151,6 @@ namespace NetFora.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving post {PostId}", id);
-                throw;
-            }
-        }
-
-        public async Task<PagedResult<PostDto>> GetUserPostsAsync(string userId, PostQueryParameters parameters)
-        {
-            try
-            {
-                var posts = await _postRepository.GetUserPostsAsync(userId, parameters);
-                var totalCount = await _postRepository.GetUserPostCountAsync(userId, parameters);
-
-                var postDtos = posts.Select(post => MapToPostDto(post, userId, false)).ToList();
-
-                return new PagedResult<PostDto>
-                {
-                    Items = postDtos,
-                    TotalCount = totalCount,
-                    Page = parameters.Page,
-                    PageSize = parameters.PageSize
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving posts for user {UserId}", userId);
                 throw;
             }
         }
@@ -215,7 +210,8 @@ namespace NetFora.Application.Services
                 Content = post.Content,
                 CreatedAt = post.CreatedAt,
                 ModerationFlags = post.ModerationFlags,
-                AuthorName = post.Author.DisplayName,
+                AuthorDisplayName = post.Author.DisplayName,
+                AuthorUserName = post.Author.UserName,
                 IsCurrentUserAuthor = currentUserId == post.AuthorId,
                 LikeCount = post.Stats?.LikeCount ?? 0,
                 CommentCount = post.Stats?.CommentCount ?? 0,
@@ -231,7 +227,8 @@ namespace NetFora.Application.Services
                 Content = comment.Content,
                 CreatedAt = comment.CreatedAt,
                 ModerationFlags = comment.ModerationFlags,
-                AuthorName = comment.Author.DisplayName,
+                AuthorDisplayName = comment.Author.DisplayName,
+                AuthorUserName = comment.Author.UserName,
                 IsCurrentUserAuthor = currentUserId == comment.AuthorId
             };
         }
