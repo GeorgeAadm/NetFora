@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NetFora.Application.Interfaces.Repositories;
 using NetFora.Domain.Entities;
-using NetFora.Infrastructure.Interfaces;
 
 namespace NetFora.Infrastructure.Repositories
 {

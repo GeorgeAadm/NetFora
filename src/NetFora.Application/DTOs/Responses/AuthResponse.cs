@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NetFora.Api.DTOs.Auth
+namespace NetFora.Application.DTOs.Responses
 {
     public class AuthResponse
     {

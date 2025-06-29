@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NetFora.Api.DTOs.Auth
+namespace NetFora.Application.DTOs.Requests
 {
     public class RegisterRequest
     {

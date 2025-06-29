@@ -1,9 +1,10 @@
 ﻿using System.Threading.Tasks;
-using NetFora.Application.DTOs;
+using NetFora.Application.DTOs.Requests;
+using NetFora.Application.DTOs.Responses;
 using NetFora.Application.QueryParameters;
 using NetFora.Domain.Common;
 
-namespace NetFora.Application.Interfaces
+namespace NetFora.Application.Interfaces.Services
 {
     public interface ICommentService
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NetFora.Application.DTOs
+namespace NetFora.Application.DTOs.Responses
 {
     public class PostDetailDto : PostDto
     {

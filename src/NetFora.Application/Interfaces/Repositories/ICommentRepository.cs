@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using NetFora.Application.QueryParameters;
 using NetFora.Domain.Entities;
 
-namespace NetFora.Infrastructure.Interfaces
+namespace NetFora.Application.Interfaces.Repositories
 {
     public interface ICommentRepository
     {

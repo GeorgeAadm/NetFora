@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using NetFora.Application.Interfaces.Repositories;
 using NetFora.Application.QueryParameters;
 using NetFora.Domain.Common;
 using NetFora.Domain.Entities;
 using NetFora.Infrastructure.Data;
-using NetFora.Infrastructure.Interfaces;
 
 namespace NetFora.Infrastructure.Repositories
 {
@@ -20,9 +20,11 @@ namespace NetFora.Infrastructure.Repositories
             _context = context;
         }
 
-        public Task<Comment> AddAsync(Comment comment)
+        public async Task<Comment> AddAsync(Comment comment)
         {
-            throw new NotImplementedException();
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+            return comment;
         }
 
         public Task<bool> ExistsAsync(int id)

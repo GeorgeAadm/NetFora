@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NetFora.Application.DTOs
+namespace NetFora.Application.DTOs.Responses
 {
     public class UserProfileDto
     {

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NetFora.Domain.Entities;
 
-namespace NetFora.Infrastructure.Interfaces
+namespace NetFora.Application.Interfaces.Repositories
 {
     public interface ILikeRepository
     {

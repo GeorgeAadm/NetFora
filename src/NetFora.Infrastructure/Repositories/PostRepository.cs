@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using NetFora.Application.Interfaces.Repositories;
 using NetFora.Application.QueryParameters;
 using NetFora.Domain.Common;
 using NetFora.Domain.Entities;
 using NetFora.Infrastructure.Data;
-using NetFora.Infrastructure.Interfaces;
 
 namespace NetFora.Infrastructure.Repositories
 {

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using NetFora.Application.DTOs;
+using NetFora.Application.DTOs.Responses;
 
-namespace NetFora.Application.Interfaces
+namespace NetFora.Application.Interfaces.Services
 {
     public interface IUserService
     {

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace NetFora.Application.Interfaces
+namespace NetFora.Application.Interfaces.Services
 {
     public interface ILikeService
     {

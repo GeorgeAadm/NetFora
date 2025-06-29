@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using NetFora.Domain.Entities;
 using NetFora.Application.QueryParameters;
 
-namespace NetFora.Infrastructure.Interfaces
+namespace NetFora.Application.Interfaces.Repositories
 {
     public interface IPostRepository
     {

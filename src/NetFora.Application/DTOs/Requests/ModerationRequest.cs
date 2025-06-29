@@ -1,4 +1,4 @@
-﻿namespace NetFora.Application.DTOs
+﻿namespace NetFora.Application.DTOs.Requests
 {
     public class ModerationRequest
     {
