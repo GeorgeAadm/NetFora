@@ -1,6 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using NetFora.Application.Interfaces.Services;
 
 namespace NetFora.Api.Controllers
 {
@@ -9,6 +13,17 @@ namespace NetFora.Api.Controllers
     [Authorize]
     public class LikesController : ControllerBase
     {
+        private readonly ILikeService _likeService;
+        private readonly IPostService _postService;
+        private readonly ILogger<LikesController> _logger;
+
+        public LikesController(ILikeService likeService, IPostService postService, ILogger<LikesController> logger)
+        {
+            _likeService = likeService;
+            _postService = postService;
+            _logger = logger;
+        }
+
         // GET /api/posts/{postId}/likes/count
         [HttpGet("count")]
         [AllowAnonymous]
@@ -21,7 +36,13 @@ namespace NetFora.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> LikePost(int postId)
         {
-            return Ok();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
+
+            var success = await _likeService.LikePostAsync(postId, userId);
+
+            return Ok(new { message = "Like request processed" });
         }
 
         // DELETE /api/posts/{postId}/likes

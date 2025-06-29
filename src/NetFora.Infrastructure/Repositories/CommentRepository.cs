@@ -27,19 +27,18 @@ namespace NetFora.Infrastructure.Repositories
             return comment;
         }
 
-        public Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Comments.AnyAsync(c => c.Id == id);
         }
 
-        public Task<Comment?> GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+        #region GET
 
-        public Task<int> GetCommentCountForPostAsync(int postId)
+        public async Task<Comment?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Comments
+                .Include(c => c.Author)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<IEnumerable<Comment>> GetCommentsForPostAsync(int postId, CommentQueryParameters parameters)
@@ -55,14 +54,6 @@ namespace NetFora.Infrastructure.Repositories
                 .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
                 .ToListAsync();
-        }
-        
-
-        public async Task<int> GetFlaggedCommentCountAsync(CommentQueryParameters parameters)
-        {
-            var query = _context.Comments.Where(c => c.ModerationFlags > 0);
-            query = ApplyFilters(query, parameters);
-            return await query.CountAsync();
         }
 
         public async Task<IEnumerable<Comment>> GetFlaggedCommentsAsync(CommentQueryParameters parameters)
@@ -80,6 +71,16 @@ namespace NetFora.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        #endregion
+
+        #region COUNTS
+
+        public async Task<int> GetCommentCountForPostAsync(int postId)
+        {
+            return await _context.Comments.CountAsync(c => c.PostId == postId);
+        }
+
+
         public async Task<int> GetTotalCountForPostAsync(int postId, CommentQueryParameters parameters)
         {
             var query = _context.Comments.Where(c => c.PostId == postId);
@@ -87,14 +88,26 @@ namespace NetFora.Infrastructure.Repositories
             return await query.CountAsync();
         }
 
+        public async Task<int> GetFlaggedCommentCountAsync(CommentQueryParameters parameters)
+        {
+            var query = _context.Comments.Where(c => c.ModerationFlags > 0);
+            query = ApplyFilters(query, parameters);
+            return await query.CountAsync();
+        }
+
+        #endregion
+
         public Task<bool> IsUserAuthorAsync(int commentId, string userId)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); 
+            // return await _context.Comments.AnyAsync(c => c.Id == commentId && c.AuthorId == userId);
         }
 
         public Task UpdateAsync(Comment comment)
         {
             throw new NotImplementedException();
+            // _context.Comments.Update(comment);
+            // await _context.SaveChangesAsync();
         }
 
         private IQueryable<Comment> ApplyFilters(IQueryable<Comment> query, CommentQueryParameters parameters)

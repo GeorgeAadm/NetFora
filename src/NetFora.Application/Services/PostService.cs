@@ -13,13 +13,16 @@ namespace NetFora.Application.Services
 {
     public class PostService : IPostService
     {
-        private readonly IPostRepository _postRepository;
+        private readonly IPostRepository _postRepository; 
+        private readonly IPostStatsRepository _statsRepository;
         private readonly ILogger<PostService> _logger;
         public PostService(
             IPostRepository postRepository,
+            IPostStatsRepository statsRepository,
             ILogger<PostService> logger)
         {
             _postRepository = postRepository;
+            _statsRepository = statsRepository;
             _logger = logger;
         }
 

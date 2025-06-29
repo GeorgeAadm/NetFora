@@ -1,7 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NetFora.Application.DTOs;
+using Microsoft.Extensions.Logging;
+using NetFora.Application.DTOs.Requests;
+using NetFora.Application.DTOs.Responses;
+using NetFora.Application.Interfaces.Services;
 using NetFora.Application.QueryParameters;
 using NetFora.Domain.Common;
 
@@ -11,6 +15,15 @@ namespace NetFora.Api.Controllers
     [Route("api/posts/{postId}/comments")]
     public class CommentsController : ControllerBase
     {
+        private readonly ICommentService _commentService;
+        private readonly ILogger<CommentsController> _logger;
+
+        public CommentsController(ICommentService commentService, ILogger<CommentsController> logger)
+        {
+            _commentService = commentService;
+            _logger = logger;
+        }
+
         // GET /api/posts/{postId}/comments
         [HttpGet]
         [AllowAnonymous]
@@ -32,7 +45,14 @@ namespace NetFora.Api.Controllers
         [Authorize]
         public async Task<ActionResult<CommentDto>> CreateComment(int postId, [FromBody] CreateCommentRequest request)
         {
-            return Ok();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
+
+            request.PostId = postId;
+            var comment = await _commentService.CreateCommentAsync(request, userId);
+
+            return CreatedAtAction(nameof(GetComment), new { postId, commentId = comment.Id }, comment);
         }
     }
 }

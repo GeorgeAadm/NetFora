@@ -27,9 +27,9 @@ namespace NetFora.Infrastructure.Repositories
             return post;
         }
 
-        public Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Posts.AnyAsync(p => p.Id == id);
         }
 
         public async Task<Post?> GetByIdAsync(int id)
@@ -47,16 +47,7 @@ namespace NetFora.Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public Task<int> GetFlaggedPostCountAsync(PostQueryParameters parameters)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Post>> GetFlaggedPostsAsync(PostQueryParameters parameters)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public async Task<IEnumerable<Post>> GetPostsAsync(PostQueryParameters parameters)
         {
             var query = _context.Posts
@@ -73,29 +64,76 @@ namespace NetFora.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public Task<int> GetTotalCountAsync(PostQueryParameters parameters)
+        public async Task<IEnumerable<Post>> GetUserPostsAsync(string userId, PostQueryParameters parameters)
         {
-            throw new NotImplementedException();
+            var query = _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Stats)
+                .Where(p => p.AuthorId == userId);
+
+            query = ApplyFilters(query, parameters);
+            query = ApplySorting(query, parameters);
+
+            return await query
+                .Skip((parameters.Page - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
+                .ToListAsync();
         }
 
-        public Task<int> GetUserPostCountAsync(string userId, PostQueryParameters parameters)
+        public async Task<IEnumerable<Post>> GetFlaggedPostsAsync(PostQueryParameters parameters)
         {
-            throw new NotImplementedException();
+            var query = _context.Posts
+                .Include(p => p.Author)
+                .Include(p => p.Stats)
+                .Where(p => p.ModerationFlags > 0);
+
+            query = ApplyFilters(query, parameters);
+            query = ApplySorting(query, parameters);
+
+            return await query
+                .Skip((parameters.Page - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
+                .ToListAsync();
         }
 
-        public Task<IEnumerable<Post>> GetUserPostsAsync(string userId, PostQueryParameters parameters)
+
+        #region COUNTS
+
+        public async Task<int> GetTotalCountAsync(PostQueryParameters parameters)
         {
-            throw new NotImplementedException();
+            var query = _context.Posts.AsQueryable();
+            query = ApplyFilters(query, parameters);
+            return await query.CountAsync();
         }
 
+        public async Task<int> GetUserPostCountAsync(string userId, PostQueryParameters parameters)
+        {
+            var query = _context.Posts.Where(p => p.AuthorId == userId);
+            query = ApplyFilters(query, parameters);
+            return await query.CountAsync();
+        }
+        
+        public async Task<int> GetFlaggedPostCountAsync(PostQueryParameters parameters)
+        {
+            var query = _context.Posts.Where(p => p.ModerationFlags > 0);
+            query = ApplyFilters(query, parameters);
+            return await query.CountAsync();
+        }
+
+        #endregion
+
+        // TODO: review 
         public Task<bool> IsUserAuthorAsync(int postId, string userId)
         {
             throw new NotImplementedException();
+            //return await _context.Posts.AnyAsync(p => p.Id == postId && p.AuthorId == userId);
         }
 
         public Task UpdateAsync(Post post)
         {
             throw new NotImplementedException();
+            // _context.Posts.Update(post);
+            // await _context.SaveChangesAsync();
         }
 
         private IQueryable<Post> ApplyFilters(IQueryable<Post> query, PostQueryParameters parameters)

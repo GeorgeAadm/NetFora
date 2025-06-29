@@ -28,9 +28,9 @@ namespace NetFora.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public Task<bool> ExistsAsync(int postId)
+        public async Task<bool> ExistsAsync(int postId)
         {
-            throw new NotImplementedException();
+            return await _context.PostStats.AnyAsync(s => s.PostId == postId);
         }
 
         public async Task<PostStats?> GetByPostIdAsync(int postId)

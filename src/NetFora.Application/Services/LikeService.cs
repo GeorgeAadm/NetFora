@@ -56,9 +56,19 @@ namespace NetFora.Application.Services
             return true;
         }
 
-        public Task<bool> UnlikePostAsync(int postId, string userId)
+        public async Task<bool> UnlikePostAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
+            var likeEvent = new LikeEvent
+            {
+                PostId = postId,
+                UserId = userId,
+                Action = "UNLIKE"
+            };
+
+            await _eventService.PublishLikeEventAsync(likeEvent);
+
+            return true;
+
         }
     }
 }

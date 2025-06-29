@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NetFora.Application.DTOs;
+using NetFora.Application.DTOs.Requests;
+using NetFora.Application.DTOs.Responses;
 using NetFora.Application.QueryParameters;
 using NetFora.Domain.Common;
 

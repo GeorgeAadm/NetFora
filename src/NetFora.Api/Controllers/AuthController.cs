@@ -10,7 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using NetFora.Api.DTOs.Auth;
+using NetFora.Application.DTOs.Requests;
+using NetFora.Application.DTOs.Responses;
 using NetFora.Domain.Entities;
 
 namespace NetFora.Api.Controllers;

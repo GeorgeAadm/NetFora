@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using NetFora.Application.Interfaces.Repositories;
 using NetFora.Domain.Entities;
 using NetFora.Infrastructure.Data;
@@ -16,44 +18,68 @@ namespace NetFora.Infrastructure.Repositories
             _context = context;
         }
 
-        public Task<Like> AddAsync(Like like)
+        public async Task<Like?> GetLikeAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
+            return await _context.Likes
+                .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
         }
 
-        public Task<bool> CanUserLikePostAsync(int postId, string userId)
+        public async Task<Like> AddAsync(Like like)
         {
-            throw new NotImplementedException();
+            _context.Likes.Add(like);
+            await _context.SaveChangesAsync();
+            return like;
         }
 
-        public Task<bool> ExistsAsync(int postId, string userId)
+        
+        public async Task RemoveAsync(Like like)
         {
-            throw new NotImplementedException();
+            _context.Likes.Remove(like);
+            await _context.SaveChangesAsync();
         }
 
-        public Task<Like?> GetLikeAsync(int postId, string userId)
+        public async Task RemoveByPostAndUserAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
+            var like = await GetLikeAsync(postId, userId);
+            if (like != null)
+            {
+                await RemoveAsync(like);
+            }
         }
 
-        public Task<int> GetLikeCountAsync(int postId)
+
+        public async Task<bool> CanUserLikePostAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
+            // Check if post exists and user is not the author
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == postId);
+            if (post == null || post.AuthorId == userId)
+                return false;
+
+            // Check if user hasn't already liked the post
+            return !await ExistsAsync(postId, userId);
         }
 
-        public Task<IEnumerable<Like>> GetLikesForPostAsync(int postId)
+        public async Task<bool> ExistsAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
+            return await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
         }
 
-        public Task RemoveAsync(Like like)
+        #region COUNTS
+
+        public async Task<int> GetLikeCountAsync(int postId)
         {
-            throw new NotImplementedException();
+            return await _context.Likes.CountAsync(l => l.PostId == postId);
         }
 
-        public Task RemoveByPostAndUserAsync(int postId, string userId)
+        public async Task<IEnumerable<Like>> GetLikesForPostAsync(int postId)
         {
-            throw new NotImplementedException();
+            return await _context.Likes
+                .Where(l => l.PostId == postId)
+                .ToListAsync();
         }
+
+        #endregion
+
+
     }
 }
