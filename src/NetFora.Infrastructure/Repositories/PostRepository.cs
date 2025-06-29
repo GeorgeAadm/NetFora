@@ -145,7 +145,7 @@ namespace NetFora.Infrastructure.Repositories
                 query = query.Where(p => p.CreatedAt <= parameters.DateTo.Value);
 
             if (!string.IsNullOrEmpty(parameters.AuthorName))
-                query = query.Where(p => p.Author.DisplayName.Contains(parameters.AuthorName));
+                query = query.Where(p => p.Author.DisplayName == parameters.AuthorName);
 
             if (!string.IsNullOrEmpty(parameters.SearchTerm))
                 query = query.Where(p => p.Title.Contains(parameters.SearchTerm) || p.Content.Contains(parameters.SearchTerm));

@@ -8,6 +8,8 @@ namespace NetFora.Application.Interfaces.Repositories
     {
         Task<Like?> GetLikeAsync(int postId, string userId);
         Task<IEnumerable<Like>> GetLikesForPostAsync(int postId);
+        Task<Dictionary<int, bool>> GetUserLikeStatusForPostsAsync(IEnumerable<int> postIds, string userId);
+
         Task<Like> AddAsync(Like like);
         Task RemoveAsync(Like like);
         Task RemoveByPostAndUserAsync(int postId, string userId);

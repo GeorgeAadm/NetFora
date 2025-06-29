@@ -18,6 +18,16 @@ namespace NetFora.Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<Dictionary<int, bool>> GetUserLikeStatusForPostsAsync(IEnumerable<int> postIds, string userId)
+        {
+            var likedPostIds = await _context.Likes
+                .Where(l => postIds.Contains(l.PostId) && l.UserId == userId)
+                .Select(l => l.PostId)
+                .ToListAsync();
+
+            return postIds.ToDictionary(postId => postId, postId => likedPostIds.Contains(postId));
+        }
+
         public async Task<Like?> GetLikeAsync(int postId, string userId)
         {
             return await _context.Likes
