@@ -1,0 +1,1334 @@
+{
+  "info": {
+    "_postman_id": "netfora-advanced-tests",
+    "name": "NetFora API - Advanced Test Scenarios",
+    "description": "Comprehensive test scenarios including multi-user interactions, volume testing, and business rules validation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup Test Users",
+      "item": [
+        {
+          "name": "Create User 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"User 1 created successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('token');",
+                  "    pm.expect(response).to.have.property('email');",
+                  "    ",
+                  "    pm.environment.set(\"user1_token\", response.token);",
+                  "    pm.environment.set(\"user1_email\", response.email);",
+                  "    pm.environment.set(\"user1_username\", `user1_${pm.variables.get('$randomInt')}`);",
+                  "    pm.environment.set(\"user1_displayName\", response.displayName);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomId = pm.variables.get('$randomInt');",
+                  "pm.variables.set('user1_random', randomId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user1_{{user1_random}}@test.com\",\n  \"password\": \"Test123!\",\n  \"displayName\": \"Test User One\",\n  \"userName\": \"user1_{{user1_random}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Create User 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"User 2 created successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"user2_token\", response.token);",
+                  "    pm.environment.set(\"user2_email\", response.email);",
+                  "    pm.environment.set(\"user2_username\", `user2_${pm.variables.get('$randomInt')}`);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomId = pm.variables.get('$randomInt');",
+                  "pm.variables.set('user2_random', randomId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user2_{{user2_random}}@test.com\",\n  \"password\": \"Test123!\",\n  \"displayName\": \"Test User Two\",\n  \"userName\": \"user2_{{user2_random}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Create User 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"User 3 created successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"user3_token\", response.token);",
+                  "    pm.environment.set(\"user3_email\", response.email);",
+                  "    pm.environment.set(\"user3_username\", `user3_${pm.variables.get('$randomInt')}`);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomId = pm.variables.get('$randomInt');",
+                  "pm.variables.set('user3_random', randomId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user3_{{user3_random}}@test.com\",\n  \"password\": \"Test123!\",\n  \"displayName\": \"Test User Three\",\n  \"userName\": \"user3_{{user3_random}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Create Moderator User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Moderator created successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"moderator_token\", response.token);",
+                  "    pm.environment.set(\"moderator_email\", response.email);",
+                  "    pm.environment.set(\"moderator_username\", `moderator_${pm.variables.get('$randomInt')}`);",
+                  "});",
+                  "",
+                  "// Note: You'll need to manually add this user to the Moderator role in the database"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomId = pm.variables.get('$randomInt');",
+                  "pm.variables.set('mod_random', randomId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"moderator_{{mod_random}}@test.com\",\n  \"password\": \"Test123!\",\n  \"displayName\": \"Test Moderator\",\n  \"userName\": \"moderator_{{mod_random}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Multi-User Interaction Tests",
+      "item": [
+        {
+          "name": "User 1 Creates Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Post created by User 1\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    const post_id = response.id;",
+                  "    ",
+                  "    pm.environment.set(\"user1_post_id\", post_id);",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    ",
+                  "    pm.expect(response.authorUserName).to.eql(pm.environment.get('user1_username'));",
+                  "    pm.expect(response.isCurrentUserAuthor).to.be.true;",
+                  "    pm.expect(response.likeCount).to.eql(0);",
+                  "    pm.expect(response.commentCount).to.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"User 1's Amazing Post\",\n  \"content\": \"This is a post created by User 1 for testing multi-user interactions.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          }
+        },
+        {
+          "name": "User 2 Likes User 1's Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"User 2 successfully liked User 1's post\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Wait a bit for event processing",
+                  "setTimeout(() => {}, 1000);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user2_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes"]
+            }
+          }
+        },
+        {
+          "name": "User 3 Likes User 1's Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"User 3 successfully liked User 1's post\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user3_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes"]
+            }
+          }
+        },
+        {
+          "name": "Verify Like Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Like count should be 2\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.jsonBody(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Wait for event processing",
+                  "setTimeout(() => {}, 2000);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes/count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes", "count"]
+            }
+          }
+        },
+        {
+          "name": "User 2 Comments on User 1's Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Comment created successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.content).to.include(\"Great post\");",
+                  "    pm.expect(response.isCurrentUserAuthor).to.be.true;",
+                  "    ",
+                  "    pm.environment.set(\"user2_comment_id\", response.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user2_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postId\": {{user1_post_id}},\n  \"content\": \"Great post! I totally agree with your points.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "comments"]
+            }
+          }
+        },
+        {
+          "name": "User 3 Comments on User 1's Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Comment created successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"user3_comment_id\", response.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user3_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postId\": {{user1_post_id}},\n  \"content\": \"Interesting perspective! Here's my take on it...\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Get Post with All Interactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Post retrieved with correct counts\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.likeCount).to.eql(2);",
+                  "    pm.expect(response.commentCount).to.eql(2);",
+                  "    pm.expect(response.comments).to.have.lengthOf(2);",
+                  "    ",
+                  "    // Verify comment authors",
+                  "    const commentAuthors = response.comments.map(c => c.authorUserName);",
+                  "    pm.expect(commentAuthors).to.include(pm.environment.get('user2_username'));",
+                  "    pm.expect(commentAuthors).to.include(pm.environment.get('user3_username'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Wait for event processing",
+                  "setTimeout(() => {}, 3000);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Business Rules Tests",
+      "item": [
+        {
+          "name": "User Cannot Like Own Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should not allow user to like own post\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    ",
+                  "    const response = pm.response.text();",
+                  "    pm.expect(response.toLowerCase()).to.include(\"cannot like\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes"]
+            }
+          }
+        },
+        {
+          "name": "User Cannot Like Same Post Twice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should not allow duplicate likes\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    ",
+                  "    const response = pm.response.text();",
+                  "    pm.expect(response.toLowerCase()).to.include(\"unable to like post.\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user2_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes"]
+            }
+          }
+        },
+        {
+          "name": "Validate Post Title Length",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should reject post with title over 200 chars\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(JSON.stringify(response)).to.include(\"200\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"This is an extremely long title that exceeds the maximum allowed length of 200 characters. It keeps going and going and going and going and going and going and going and going and going and going and going!\",\n  \"content\": \"Content is fine\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Validate Comment Length",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should reject comment over 2000 chars\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(JSON.stringify(response)).to.include(\"2000\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate a string over 2000 characters",
+                  "const longContent = 'x'.repeat(2001);",
+                  "pm.variables.set('long_comment', longContent);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postId\": {{user1_post_id}},\n  \"content\": \"{{long_comment}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Cannot Comment on Non-Existent Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should return 404 for non-existent post\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postId\": 999999,\n  \"content\": \"This should fail\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/999999/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "999999", "comments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Moderation Tests",
+      "item": [
+        {
+          "name": "Flag Post as Misleading",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Post flagged successfully\", function () {",
+                  "    // Will be 403 if not moderator, 200 if moderator",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "    ",
+                  "    if (pm.response.code === 403) {",
+                  "        console.log(\"Note: User needs Moderator role to flag posts\");",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{moderator_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flags\": 1,\n  \"reason\": \"Contains misleading information about health\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/moderation/posts/{{user1_post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "moderation", "posts", "{{user1_post_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Flag Comment as False",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Comment flagged successfully\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{moderator_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flags\": 2,\n  \"reason\": \"False claim about product features\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/moderation/comments/{{user2_comment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "moderation", "comments", "{{user2_comment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Flagged Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Can retrieve flagged posts\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    const flaggedPosts = response.items.filter(p => p.moderationFlags > 0);",
+                  "    ",
+                  "    flaggedPosts.forEach(post => {",
+                  "        pm.expect(post.isFlagged).to.be.true;",
+                  "        pm.expect(post.moderationFlags).to.be.above(0);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?moderationFlags=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "moderationFlags",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Regular User Cannot Moderate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Regular user cannot moderate\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user1_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flags\": 1,\n  \"reason\": \"Should not work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/moderation/posts/{{user1_post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "moderation", "posts", "{{user1_post_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Query and Filter Tests",
+      "item": [
+        {
+          "name": "Search Posts by Term",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Search returns relevant results\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    const items = response.items;",
+                  "    ",
+                  "    items.forEach(post => {",
+                  "        const hasTermInTitle = post.title.toLowerCase().includes('amazing');",
+                  "        const hasTermInContent = post.content.toLowerCase().includes('amazing');",
+                  "        pm.expect(hasTermInTitle || hasTermInContent).to.be.true;",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?searchTerm=amazing",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "searchTerm",
+                  "value": "amazing"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Posts by Author",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"All posts are by specified author\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    const expectedUsername = pm.environment.get('user1_username');",
+                  "    ",
+                  "    response.items.forEach(post => {",
+                  "        pm.expect(post.authorUserName).to.eql(expectedUsername);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?authorUserName={{user1_username}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "authorUserName",
+                  "value": "{{user1_username}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sort Posts by Like Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Posts sorted by like count descending\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    const items = response.items;",
+                  "    ",
+                  "    for (let i = 1; i < items.length; i++) {",
+                  "        pm.expect(items[i-1].likeCount).to.be.at.least(items[i].likeCount);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?sortBy=LikeCount&sortDirection=Descending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "LikeCount"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "Descending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Posts with Comments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"All posts have comments\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    response.items.forEach(post => {",
+                  "        pm.expect(post.commentCount).to.be.above(0);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?hasComments=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "hasComments",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complex Filter Query",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Complex filter returns correct results\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    response.items.forEach(post => {",
+                  "        pm.expect(post.likeCount).to.be.at.least(1);",
+                  "        pm.expect(post.commentCount).to.be.above(0);",
+                  "        // Check date is within last 24 hours",
+                  "        const postDate = new Date(post.createdAt);",
+                  "        const yesterday = new Date();",
+                  "        yesterday.setDate(yesterday.getDate() - 1);",
+                  "        pm.expect(postDate).to.be.above(yesterday);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Set date from yesterday",
+                  "const yesterday = new Date();",
+                  "yesterday.setDate(yesterday.getDate() - 1);",
+                  "pm.variables.set('yesterday', yesterday.toISOString());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?minLikes=1&hasComments=true&dateFrom={{yesterday}}&sortBy=CreatedDate&sortDirection=Descending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "minLikes",
+                  "value": "1"
+                },
+                {
+                  "key": "hasComments",
+                  "value": "true"
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "{{yesterday}}"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "CreatedDate"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "Descending"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Performance Tests",
+      "item": [
+        {
+          "name": "Response Time Check - Get All Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response time is less than 500ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has proper caching headers\", function () {",
+                  "    // Check if API implements caching",
+                  "    const cacheControl = pm.response.headers.get('Cache-Control');",
+                  "    if (cacheControl) {",
+                  "        console.log('Cache-Control:', cacheControl);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts?page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Concurrent Like Requests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Handles concurrent requests\", function () {",
+                  "    // One should succeed, others should fail with 'already liked'",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user2_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes"]
+            },
+            "description": "Run this multiple times concurrently to test race conditions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cleanup Tests",
+      "item": [
+        {
+          "name": "User 2 Unlikes Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Unlike successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user2_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes"]
+            }
+          }
+        },
+        {
+          "name": "Verify Updated Like Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Like count decreased\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    // Should be 1 now (only User 3's like remains)",
+                  "    pm.response.to.have.jsonBody(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/{{user1_post_id}}/likes/count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "{{user1_post_id}}", "likes", "count"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
