@@ -104,9 +104,15 @@ namespace NetFora.Infrastructure.Repositories
 
         #region COUNTS
 
-        public async Task<int> GetTotalCountAsync(PostQueryParameters parameters)
+        public async Task<int> GetTotalCountAsync(PostQueryParameters parameters, string? authorId = null)
         {
             var query = _context.Posts.AsQueryable();
+
+            if (!string.IsNullOrEmpty(authorId))
+            {
+                query = query.Where(p => p.AuthorId == authorId);
+            }
+
             query = ApplyFilters(query, parameters);
             return await query.CountAsync();
         }
