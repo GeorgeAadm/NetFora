@@ -1,12 +1,13 @@
+using System;
 using Microsoft.EntityFrameworkCore;
-using NetFora.Infrastructure.Data;
-using NetFora.Infrastructure.Services;
-using NetFora.EventProcessor.Workers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using NetFora.EventProcessor.Workers;
+using NetFora.Infrastructure.Data;
 using NetFora.Infrastructure.Interfaces;
+using NetFora.Infrastructure.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -17,7 +18,13 @@ builder.Logging.AddDebug();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    });
 
     // Optimize for background processing
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
