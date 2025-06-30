@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Dockerfile = Dockerfile
 		InitialCreate.sql = InitialCreate.sql
 		README.md = README.md
+		setup-dev-environment.ps1 = setup-dev-environment.ps1
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFora.Domain", "src\NetFora.Domain\NetFora.Domain.csproj", "{7C1ED178-3FD6-4434-82F4-B79FAA0CFFCD}"
