@@ -1,24 +1,39 @@
-# Use the official .NET 8 runtime as base image
+# Single Dockerfile that builds either API or EventProcessor
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-# Use the SDK image to build the app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG PROJECT_NAME=NetFora.Api
 WORKDIR /src
+
+# Copy all project files
 COPY ["src/NetFora.Api/NetFora.Api.csproj", "src/NetFora.Api/"]
-RUN dotnet restore "src/NetFora.Api/NetFora.Api.csproj"
+COPY ["src/NetFora.EventProcessor/NetFora.EventProcessor.csproj", "src/NetFora.EventProcessor/"]
+COPY ["src/NetFora.Domain/NetFora.Domain.csproj", "src/NetFora.Domain/"]
+COPY ["src/NetFora.Infrastructure/NetFora.Infrastructure.csproj", "src/NetFora.Infrastructure/"]
+COPY ["NetFora.sln", "./"]
+
+# Restore dependencies for the target project
+RUN dotnet restore "src/${PROJECT_NAME}/${PROJECT_NAME}.csproj"
+
+# Copy all source code
 COPY . .
-WORKDIR "/src/src/NetFora.Api"
-RUN dotnet build "NetFora.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+# Build the target project
+WORKDIR "/src/src/${PROJECT_NAME}"
+RUN dotnet build "${PROJECT_NAME}.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "NetFora.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+ARG PROJECT_NAME=NetFora.Api
+RUN dotnet publish "${PROJECT_NAME}.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+ARG PROJECT_NAME=NetFora.Api
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NetFora.Api.dll"]
+# Dynamic entrypoint based on project
+ENTRYPOINT dotnet ${PROJECT_NAME}.dll

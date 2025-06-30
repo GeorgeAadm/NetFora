@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        PROJECT_NAME: NetFora.Api
     ports:
       - "5000:8080"
       - "5001:8081"
@@ -16,6 +18,20 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     volumes:
       - ~/.aspnet/https:/https:ro
+    depends_on:
+      - sqlserver
+    networks:
+      - netfora-network
+
+  netfora-processor:
+    image: netfora-processor
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROJECT_NAME: NetFora.EventProcessor
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - sqlserver
     networks:

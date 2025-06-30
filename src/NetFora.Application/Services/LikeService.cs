@@ -27,48 +27,80 @@ namespace NetFora.Application.Services
             _logger = logger;
         }
 
-
-        public Task<int> GetLikeCountAsync(int postId)
+        // TODO: remove - possible duplication
+        public async Task<bool> IsPostLikedByUserAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
+            return await _likeRepository.ExistsAsync(postId, userId);
+        }
+        // TODO: remove - handlesd by PostStats
+        public async Task<int> GetLikeCountAsync(int postId)
+        {
+            return await _likeRepository.GetLikeCountAsync(postId);
         }
 
-        public Task<bool> IsPostLikedByUserAsync(int postId, string userId)
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task<bool> LikePostAsync(int postId, string userId)
         {
-            // Business Rule Validation
-            if (!await _likeRepository.CanUserLikePostAsync(postId, userId))
-                return false;
-
-            var likeEvent = new LikeEvent
+            try
             {
-                PostId = postId,
-                UserId = userId,
-                Action = "LIKE"
-            };
+                // TODO: remove Check if user can like the post (not author, hasn't already liked)
+                if (!await _likeRepository.CanUserLikePostAsync(postId, userId))
+                {
+                    _logger.LogWarning("User {UserId} cannot like post {PostId}", userId, postId);
+                    return false;
+                }
 
-            await _eventService.PublishLikeEventAsync(likeEvent);
+                // Publish like event for background processing
+                var likeEvent = new LikeEvent
+                {
+                    PostId = postId,
+                    UserId = userId,
+                    Action = "LIKE"
+                };
 
-            return true;
+                await _eventService.PublishLikeEventAsync(likeEvent);
+
+                _logger.LogInformation("Like event published for post {PostId} by user {UserId}", postId, userId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error liking post {PostId} for user {UserId}", postId, userId);
+                // TODO: Handle err - check bool for success! - do NOT throw!
+                throw;
+            }
         }
 
         public async Task<bool> UnlikePostAsync(int postId, string userId)
         {
-            var likeEvent = new LikeEvent
+            try
             {
-                PostId = postId,
-                UserId = userId,
-                Action = "UNLIKE"
-            };
+                // TODO: remove Check if user has liked the post
+                if (!await _likeRepository.ExistsAsync(postId, userId))
+                {
+                    _logger.LogWarning("User {UserId} has not liked post {PostId}", userId, postId);
+                    return false;
+                }
 
-            await _eventService.PublishLikeEventAsync(likeEvent);
+                // Publish unlike event for background processing
+                var likeEvent = new LikeEvent
+                {
+                    PostId = postId,
+                    UserId = userId,
+                    Action = "UNLIKE"
+                };
 
-            return true;
+                await _eventService.PublishLikeEventAsync(likeEvent);
 
+                _logger.LogInformation("Unlike event published for post {PostId} by user {UserId}", postId, userId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unliking post {PostId} for user {UserId}", postId, userId);
+                // TODO: Handle err - check bool for success! - do NOT throw!
+                throw;
+            }
         }
     }
 }

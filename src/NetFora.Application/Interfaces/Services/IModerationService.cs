@@ -9,7 +9,9 @@ namespace NetFora.Application.Interfaces.Services
     {
         Task<bool> ModeratePostAsync(int postId, int flags, string moderatorId);
         Task<bool> ModerateCommentAsync(int commentId, int flags, string moderatorId);
+        /*
         Task<PagedResult<PostDto>> GetFlaggedPostsAsync(PostQueryParameters parameters);
         Task<PagedResult<CommentDto>> GetFlaggedCommentsAsync(CommentQueryParameters parameters);
+        */
     }
 }
