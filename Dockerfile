@@ -12,6 +12,7 @@ WORKDIR /src
 # Copy all project files
 COPY ["src/NetFora.Api/NetFora.Api.csproj", "src/NetFora.Api/"]
 COPY ["src/NetFora.EventProcessor/NetFora.EventProcessor.csproj", "src/NetFora.EventProcessor/"]
+COPY ["src/NetFora.Application/NetFora.Application.csproj", "src/NetFora.Application/"]
 COPY ["src/NetFora.Domain/NetFora.Domain.csproj", "src/NetFora.Domain/"]
 COPY ["src/NetFora.Infrastructure/NetFora.Infrastructure.csproj", "src/NetFora.Infrastructure/"]
 COPY ["NetFora.sln", "./"]
@@ -35,5 +36,10 @@ FROM base AS final
 ARG PROJECT_NAME=NetFora.Api
 WORKDIR /app
 COPY --from=publish /app/publish .
-# Dynamic entrypoint based on project
-ENTRYPOINT dotnet ${PROJECT_NAME}.dll
+
+# Create a script to run the appropriate dll
+RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
+    echo 'exec dotnet '$PROJECT_NAME'.dll' >> /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]

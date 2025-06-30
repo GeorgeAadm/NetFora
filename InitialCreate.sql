@@ -1,4 +1,10 @@
-﻿BEGIN TRANSACTION;
+﻿-- Set required options for filtered indexes
+SET QUOTED_IDENTIFIER ON;
+GO
+
+BEGIN TRANSACTION;
+
+-- Create ASP.NET Identity tables
 CREATE TABLE [AspNetRoles] (
     [Id] nvarchar(450) NOT NULL,
     [Name] nvarchar(256) NULL,
@@ -10,8 +16,8 @@ CREATE TABLE [AspNetRoles] (
 CREATE TABLE [AspNetUsers] (
     [Id] nvarchar(450) NOT NULL,
     [DisplayName] nvarchar(max) NOT NULL,
-    [CreatedAt] datetime2 NOT NULL,
-    [UserName] nvarchar(256) NULL,
+    [CreatedAt] datetime2 NOT NULL DEFAULT GETUTCDATE(),
+    [UserName] nvarchar(256) NOT NULL,
     [NormalizedUserName] nvarchar(256) NULL,
     [Email] nvarchar(256) NULL,
     [NormalizedEmail] nvarchar(256) NULL,
@@ -46,9 +52,10 @@ CREATE TABLE [AspNetUserClaims] (
     CONSTRAINT [FK_AspNetUserClaims_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
 );
 
+-- Use smaller key lengths to avoid the 900 byte limit warning
 CREATE TABLE [AspNetUserLogins] (
-    [LoginProvider] nvarchar(450) NOT NULL,
-    [ProviderKey] nvarchar(450) NOT NULL,
+    [LoginProvider] nvarchar(128) NOT NULL,
+    [ProviderKey] nvarchar(128) NOT NULL,
     [ProviderDisplayName] nvarchar(max) NULL,
     [UserId] nvarchar(450) NOT NULL,
     CONSTRAINT [PK_AspNetUserLogins] PRIMARY KEY ([LoginProvider], [ProviderKey]),
@@ -65,36 +72,37 @@ CREATE TABLE [AspNetUserRoles] (
 
 CREATE TABLE [AspNetUserTokens] (
     [UserId] nvarchar(450) NOT NULL,
-    [LoginProvider] nvarchar(450) NOT NULL,
-    [Name] nvarchar(450) NOT NULL,
+    [LoginProvider] nvarchar(128) NOT NULL,
+    [Name] nvarchar(128) NOT NULL,
     [Value] nvarchar(max) NULL,
     CONSTRAINT [PK_AspNetUserTokens] PRIMARY KEY ([UserId], [LoginProvider], [Name]),
     CONSTRAINT [FK_AspNetUserTokens_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
 );
 
+-- Create indexes
 CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
-
-CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL;
-
 CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
-
 CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
-
 CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
-
 CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
 
-CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL;
+-- Create filtered indexes with proper SET options
+CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) 
+WHERE [NormalizedName] IS NOT NULL;
+
+CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) 
+WHERE [NormalizedUserName] IS NOT NULL;
 
 COMMIT;
 GO
 
-
+-- Insert default roles
 INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES 
 (NEWID(), 'User', 'USER', NEWID()),
 (NEWID(), 'Moderator', 'MODERATOR', NEWID());
+GO
 
--- Create Posts table (clean, no counters)
+-- Create Posts table
 CREATE TABLE Posts (
     Id int IDENTITY(1,1) PRIMARY KEY,
     Title nvarchar(200) NOT NULL,
@@ -103,16 +111,17 @@ CREATE TABLE Posts (
     CreatedAt datetime2 NOT NULL DEFAULT GETUTCDATE(),
     ModerationFlags int NOT NULL DEFAULT 0,
     
-    -- Indexes
-    INDEX IX_Posts_CreatedAt (CreatedAt DESC),
-    INDEX IX_Posts_AuthorId (AuthorId),
-    INDEX IX_Posts_ModerationFlags (ModerationFlags),
-    
     -- Foreign key to AspNetUsers
     FOREIGN KEY (AuthorId) REFERENCES AspNetUsers(Id)
 );
 
--- Create Comments table (clean, no counters)
+-- Create indexes for Posts
+CREATE INDEX IX_Posts_CreatedAt ON Posts(CreatedAt DESC);
+CREATE INDEX IX_Posts_AuthorId ON Posts(AuthorId);
+CREATE INDEX IX_Posts_ModerationFlags ON Posts(ModerationFlags);
+GO
+
+-- Create Comments table
 CREATE TABLE Comments (
     Id int IDENTITY(1,1) PRIMARY KEY,
     Content nvarchar(max) NOT NULL,
@@ -121,18 +130,19 @@ CREATE TABLE Comments (
     CreatedAt datetime2 NOT NULL DEFAULT GETUTCDATE(),
     ModerationFlags int NOT NULL DEFAULT 0,
     
-    -- Indexes
-    INDEX IX_Comments_PostId (PostId),
-    INDEX IX_Comments_AuthorId (AuthorId),
-    INDEX IX_Comments_CreatedAt (CreatedAt),
-    INDEX IX_Comments_ModerationFlags (ModerationFlags),
-    
     -- Foreign keys
     FOREIGN KEY (PostId) REFERENCES Posts(Id) ON DELETE CASCADE,
     FOREIGN KEY (AuthorId) REFERENCES AspNetUsers(Id)
 );
 
--- Create Likes table (relationship tracking only)
+-- Create indexes for Comments
+CREATE INDEX IX_Comments_PostId ON Comments(PostId);
+CREATE INDEX IX_Comments_AuthorId ON Comments(AuthorId);
+CREATE INDEX IX_Comments_CreatedAt ON Comments(CreatedAt);
+CREATE INDEX IX_Comments_ModerationFlags ON Comments(ModerationFlags);
+GO
+
+-- Create Likes table
 CREATE TABLE Likes (
     Id int IDENTITY(1,1) PRIMARY KEY,
     PostId int NOT NULL,
@@ -142,63 +152,72 @@ CREATE TABLE Likes (
     -- Unique constraint (one like per user per post)
     CONSTRAINT UQ_Likes_PostId_UserId UNIQUE (PostId, UserId),
     
-    -- Indexes
-    INDEX IX_Likes_UserId (UserId),
-    
     -- Foreign keys
     FOREIGN KEY (PostId) REFERENCES Posts(Id) ON DELETE CASCADE,
     FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id) ON DELETE CASCADE
 );
 
--- Create PostStats table (denormalized counters)
+-- Create index for Likes
+CREATE INDEX IX_Likes_UserId ON Likes(UserId);
+GO
+
+-- Create PostStats table
 CREATE TABLE PostStats (
     PostId int PRIMARY KEY,
     LikeCount int NOT NULL DEFAULT 0,
     CommentCount int NOT NULL DEFAULT 0,
     LastUpdated datetime2 NOT NULL DEFAULT GETUTCDATE(),
-    Version bigint NOT NULL DEFAULT 1, -- For optimistic concurrency
+    Version bigint NOT NULL DEFAULT 1,
     
     -- Foreign key
     FOREIGN KEY (PostId) REFERENCES Posts(Id) ON DELETE CASCADE
 );
+GO
 
--- Create LikeEvents table (event queue)
+-- Create LikeEvents table
 CREATE TABLE LikeEvents (
     Id bigint IDENTITY(1,1) PRIMARY KEY,
     PostId int NOT NULL,
     UserId nvarchar(450) NOT NULL,
-    Action varchar(10) NOT NULL, -- 'LIKE' or 'UNLIKE'
+    Action varchar(10) NOT NULL,
     CreatedAt datetime2 NOT NULL DEFAULT GETUTCDATE(),
     Processed bit NOT NULL DEFAULT 0,
     ProcessedAt datetime2 NULL,
-    
-    -- Indexes for processing
-    INDEX IX_LikeEvents_Processed_CreatedAt (Processed, CreatedAt),
-    INDEX IX_LikeEvents_PostId (PostId),
     
     -- Foreign keys
     FOREIGN KEY (PostId) REFERENCES Posts(Id) ON DELETE CASCADE,
     FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id)
 );
 
--- Create CommentEvents table (event queue)
+-- Create indexes for LikeEvents
+CREATE INDEX IX_LikeEvents_Processed_CreatedAt ON LikeEvents(Processed, CreatedAt);
+CREATE INDEX IX_LikeEvents_PostId ON LikeEvents(PostId);
+GO
+
+-- Create CommentEvents table
 CREATE TABLE CommentEvents (
     Id bigint IDENTITY(1,1) PRIMARY KEY,
     PostId int NOT NULL,
-    CommentId int NULL, -- NULL for new comments
+    CommentId int NULL,
     UserId nvarchar(450) NOT NULL,
-    Action varchar(20) NOT NULL, -- 'CREATE', 'DELETE'
+    Action varchar(20) NOT NULL,
     CreatedAt datetime2 NOT NULL DEFAULT GETUTCDATE(),
     Processed bit NOT NULL DEFAULT 0,
     ProcessedAt datetime2 NULL,
-    
-    -- Indexes for processing
-    INDEX IX_CommentEvents_Processed_CreatedAt (Processed, CreatedAt),
-    INDEX IX_CommentEvents_PostId (PostId),
     
     -- Foreign keys
     FOREIGN KEY (PostId) REFERENCES Posts(Id) ON DELETE CASCADE,
     FOREIGN KEY (UserId) REFERENCES AspNetUsers(Id)
 );
 
+-- Create indexes for CommentEvents
+CREATE INDEX IX_CommentEvents_Processed_CreatedAt ON CommentEvents(Processed, CreatedAt);
+CREATE INDEX IX_CommentEvents_PostId ON CommentEvents(PostId);
+GO
 
+-- Verify tables were created
+SELECT 'Tables created successfully' AS Status;
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
+WHERE TABLE_TYPE = 'BASE TABLE' 
+ORDER BY TABLE_NAME;
+GO

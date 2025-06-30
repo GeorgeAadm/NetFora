@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using NetFora.Application.Interfaces.Repositories;
 using NetFora.Application.Interfaces.Services;
@@ -88,6 +89,7 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ILikeService, LikeService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 // Identity
@@ -162,5 +164,32 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+// Add health check endpoint
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+// Add root endpoint for testing
+app.MapGet("/", () => Results.Ok(new
+{
+    message = "NetFora API is running",
+    version = "1.0.0",
+    endpoints = new[] { "/health", "/swagger", "/api/posts" }
+}));
+
+// Ensure Swagger is available
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "NetFora API V1");
+    c.RoutePrefix = "swagger";
+});
+
+// db schema
+app.MapGet("/generate-sql", (ApplicationDbContext context) =>
+{
+    var sql = context.Database.GenerateCreateScript();
+    return Results.Text(sql, "text/plain");
+});
 
 app.Run();
