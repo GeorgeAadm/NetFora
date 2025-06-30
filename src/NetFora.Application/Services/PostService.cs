@@ -39,28 +39,26 @@ namespace NetFora.Application.Services
 
         public async Task<PagedResult<PostDto>> GetPostsAsync(PostQueryParameters parameters, string? currentUserId = null)
         {
-            // 1. Resolve author username to ID if provided
+            // 1. Resolve author UserName to ID if provided
             string? authorId = null;
             if (!string.IsNullOrEmpty(parameters.AuthorUserName))
             {
                 authorId = await _userRepository.GetUserIdByUsernameAsync(parameters.AuthorUserName);
                 if (authorId == null)
                 {
-                    // Return empty result if username doesn't exist
                     return new PagedResult<PostDto> { Items = new List<PostDto>(), TotalCount = 0 };
                 }
             }
 
-            // 2. Fetch posts (now we can pass authorId instead)
+            // 2. Fetch posts
             var posts = await _postRepository.GetPostsAsync(parameters, authorId);
             var totalCount = await _postRepository.GetTotalCountAsync(parameters, authorId);
 
-            // 3. Determine if we need like statuses
-            // Skip if: not authenticated OR viewing own posts
+            // 3. Skip retrieving Likes if not authenticated OR viewing own posts
             var skipLikeCheck = string.IsNullOrEmpty(currentUserId) ||
                                (authorId != null && authorId == currentUserId);
 
-            // 4. Fetch like statuses efficiently
+            // 4. Fetch Likes
             Dictionary<int, bool> likeStatuses = new();
             if (!skipLikeCheck)
             {
@@ -68,7 +66,6 @@ namespace NetFora.Application.Services
                 likeStatuses = await _likeRepository.GetUserLikeStatusForPostsAsync(postIds, currentUserId);
             }
 
-            // 5. Map to DTOs
             var postDtos = posts.Select(post => new PostDto
             {
                 Id = post.Id,
