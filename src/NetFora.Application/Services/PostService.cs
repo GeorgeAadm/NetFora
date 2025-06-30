@@ -19,90 +19,79 @@ namespace NetFora.Application.Services
         private readonly IPostStatsRepository _statsRepository;
         private readonly ILikeRepository _likeRepository;
         private readonly ICommentRepository _commentRepository;
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<PostService> _logger;
         public PostService(
             IPostRepository postRepository,
             ILikeRepository likeRepository,
             IPostStatsRepository statsRepository,
             ICommentRepository commentRepository,
+            IUserRepository userRepository,
             ILogger<PostService> logger)
         {
             _postRepository = postRepository;
             _likeRepository = likeRepository;
             _statsRepository = statsRepository;
             _commentRepository = commentRepository;
+            _userRepository = userRepository;
             _logger = logger;
         }
 
         public async Task<PagedResult<PostDto>> GetPostsAsync(PostQueryParameters parameters, string? currentUserId = null)
         {
-            try
+            // 1. Resolve author username to ID if provided
+            string? authorId = null;
+            if (!string.IsNullOrEmpty(parameters.AuthorUserName))
             {
-                var posts = await _postRepository.GetPostsAsync(parameters);
-                var totalCount = await _postRepository.GetTotalCountAsync(parameters);
-
-                var postDtos = new List<PostDto>();
-
-                // Determine if we're filtering by a specific author
-                var isFilteringBySpecificAuthor = !string.IsNullOrEmpty(parameters.AuthorUserName);
-                var isCurrentUserPosts = isFilteringBySpecificAuthor &&
-                                       !string.IsNullOrEmpty(currentUserId) &&
-                                       posts.Any() &&
-                                       posts.First().AuthorId == currentUserId;
-
-                if (!string.IsNullOrEmpty(currentUserId))
+                authorId = await _userRepository.GetUserIdByUsernameAsync(parameters.AuthorUserName);
+                if (authorId == null)
                 {
-                    // If filtering by current user's posts, skip like checking (can't like own posts)
-                    if (isCurrentUserPosts)
-                    {
-                        foreach (var post in posts)
-                        {
-                            postDtos.Add(MapToPostDto(post, currentUserId, false)); // Always false for own posts
-                        }
-                    }
-                    else
-                    {
-                        // General case: check likes for posts NOT authored by current user
-                        var postsNotByUser = posts.Where(p => p.AuthorId != currentUserId).Select(p => p.Id).ToList();
-
-                        Dictionary<int, bool> likeStatuses = new();
-                        if (postsNotByUser.Any())
-                        {
-                            // TODO: Implement this method in ILikeRepository
-                            likeStatuses = await _likeRepository.GetUserLikeStatusForPostsAsync(postsNotByUser, currentUserId);
-                        }
-
-                        foreach (var post in posts)
-                        {
-                            var isLiked = post.AuthorId != currentUserId && likeStatuses.GetValueOrDefault(post.Id, false);
-                            postDtos.Add(MapToPostDto(post, currentUserId, isLiked));
-                        }
-                    }
+                    // Return empty result if username doesn't exist
+                    return new PagedResult<PostDto> { Items = new List<PostDto>(), TotalCount = 0 };
                 }
-                else
-                {
-                    // Anonymous user - no like checking needed
-                    foreach (var post in posts)
-                    {
-                        postDtos.Add(MapToPostDto(post, null, false));
-                    }
-                }
-
-                return new PagedResult<PostDto>
-                {
-                    Items = postDtos,
-                    TotalCount = totalCount,
-                    Page = parameters.Page,
-                    PageSize = parameters.PageSize
-                };
             }
-            catch (Exception ex)
+
+            // 2. Fetch posts (now we can pass authorId instead)
+            var posts = await _postRepository.GetPostsAsync(parameters, authorId);
+            var totalCount = await _postRepository.GetTotalCountAsync(parameters, authorId);
+
+            // 3. Determine if we need like statuses
+            // Skip if: not authenticated OR viewing own posts
+            var skipLikeCheck = string.IsNullOrEmpty(currentUserId) ||
+                               (authorId != null && authorId == currentUserId);
+
+            // 4. Fetch like statuses efficiently
+            Dictionary<int, bool> likeStatuses = new();
+            if (!skipLikeCheck)
             {
-                _logger.LogError(ex, "Error retrieving posts with parameters: {@Parameters}", parameters);
-                throw;
+                var postIds = posts.Select(p => p.Id);
+                likeStatuses = await _likeRepository.GetUserLikeStatusForPostsAsync(postIds, currentUserId);
             }
+
+            // 5. Map to DTOs
+            var postDtos = posts.Select(post => new PostDto
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                CreatedAt = post.CreatedAt,
+                AuthorDisplayName = post.Author.DisplayName,
+                AuthorUserName = post.Author.UserName,
+                IsCurrentUserAuthor = post.AuthorId == currentUserId,
+                LikeCount = post.Stats?.LikeCount ?? 0,
+                CommentCount = post.Stats?.CommentCount ?? 0,
+                IsLikedByCurrentUser = likeStatuses.GetValueOrDefault(post.Id, false),
+                ModerationFlags = post.ModerationFlags
+            }).ToList();
+
+            return new PagedResult<PostDto>
+            {
+                Items = postDtos,
+                TotalCount = totalCount,
+                Page = parameters.Page,
+                PageSize = parameters.PageSize
+            };
         }
-
         public async Task<PostDetailDto?> GetPostByIdAsync(int id, string? currentUserId = null)
         {
             try
