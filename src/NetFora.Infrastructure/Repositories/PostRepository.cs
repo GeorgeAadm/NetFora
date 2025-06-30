@@ -48,12 +48,17 @@ namespace NetFora.Infrastructure.Repositories
         }
 
         
-        public async Task<IEnumerable<Post>> GetPostsAsync(PostQueryParameters parameters)
+        public async Task<IEnumerable<Post>> GetPostsAsync(PostQueryParameters parameters, string? authorId = null)
         {
             var query = _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Stats)
                 .AsQueryable();
+
+            if (!string.IsNullOrEmpty(authorId))
+            {
+                query = query.Where(p => p.AuthorId == authorId);
+            }
 
             query = ApplyFilters(query, parameters);
             query = ApplySorting(query, parameters);
@@ -99,9 +104,15 @@ namespace NetFora.Infrastructure.Repositories
 
         #region COUNTS
 
-        public async Task<int> GetTotalCountAsync(PostQueryParameters parameters)
+        public async Task<int> GetTotalCountAsync(PostQueryParameters parameters, string? authorId = null)
         {
             var query = _context.Posts.AsQueryable();
+
+            if (!string.IsNullOrEmpty(authorId))
+            {
+                query = query.Where(p => p.AuthorId == authorId);
+            }
+
             query = ApplyFilters(query, parameters);
             return await query.CountAsync();
         }
