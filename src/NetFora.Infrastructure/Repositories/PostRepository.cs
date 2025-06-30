@@ -122,11 +122,9 @@ namespace NetFora.Infrastructure.Repositories
 
         #endregion
 
-        // TODO: review 
-        public Task<bool> IsUserAuthorAsync(int postId, string userId)
+        public async Task<bool> IsUserAuthorAsync(int postId, string userId)
         {
-            throw new NotImplementedException();
-            //return await _context.Posts.AnyAsync(p => p.Id == postId && p.AuthorId == userId);
+            return await _context.Posts.AnyAsync(p => p.Id == postId && p.AuthorId == userId);
         }
 
         public Task UpdateAsync(Post post)

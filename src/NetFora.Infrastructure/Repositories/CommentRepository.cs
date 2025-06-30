@@ -97,17 +97,15 @@ namespace NetFora.Infrastructure.Repositories
 
         #endregion
 
-        public Task<bool> IsUserAuthorAsync(int commentId, string userId)
+        public async Task<bool> IsUserAuthorAsync(int commentId, string userId)
         {
-            throw new NotImplementedException(); 
-            // return await _context.Comments.AnyAsync(c => c.Id == commentId && c.AuthorId == userId);
+            return await _context.Comments.AnyAsync(c => c.Id == commentId && c.AuthorId == userId);
         }
 
-        public Task UpdateAsync(Comment comment)
+        public async Task UpdateAsync(Comment comment)
         {
-            throw new NotImplementedException();
-            // _context.Comments.Update(comment);
-            // await _context.SaveChangesAsync();
+            _context.Comments.Update(comment);
+            await _context.SaveChangesAsync();
         }
 
         private IQueryable<Comment> ApplyFilters(IQueryable<Comment> query, CommentQueryParameters parameters)
