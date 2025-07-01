@@ -228,5 +228,5 @@ namespace NetFora.Tests.Services
             Assert.False(result);
             _eventServiceMock.Verify(e => e.PublishLikeEventAsync(It.IsAny<LikeEvent>()), Times.Never);
         }
-    }
+}
 }
