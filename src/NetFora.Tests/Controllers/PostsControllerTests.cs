@@ -13,7 +13,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Linq; // Required for .ToList()
+using System.Linq;
 
 namespace NetFora.Tests.Controllers
 {
@@ -46,14 +46,17 @@ namespace NetFora.Tests.Controllers
         {
             // Arrange
             var parameters = new PostQueryParameters();
-            // Ensure all four arguments are provided to the PagedResult constructor
-            var expectedResult = new PagedResult<PostDto>(
-                new List<PostDto> { new PostDto { Id = 1, Title = "Test Post" } },
-                1, // totalCount
-                1, // page
-                10 // pageSize
-            );
-            _mockPostService.Setup(s => s.GetPostsAsync(parameters, It.IsAny<string>())).ReturnsAsync(expectedResult);
+            var expectedResult = new PagedResult<PostDto>
+            {
+                Items = new List<PostDto> { new PostDto { Id = 1, Title = "Test Post" } },
+                TotalCount = 1,
+                Page = 1,
+                PageSize = 10
+            };
+
+            _mockPostService
+                .Setup(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), It.IsAny<string>()))
+                .ReturnsAsync(expectedResult);
 
             // Act
             var result = await _controller.GetPosts(parameters);
@@ -62,7 +65,6 @@ namespace NetFora.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result.Result);
             var pagedResult = Assert.IsType<PagedResult<PostDto>>(okResult.Value);
             Assert.Single(pagedResult.Items);
-            // Convert to List before accessing by index
             Assert.Equal("Test Post", pagedResult.Items.ToList()[0].Title);
         }
 
@@ -71,7 +73,9 @@ namespace NetFora.Tests.Controllers
         {
             // Arrange
             var parameters = new PostQueryParameters();
-            _mockPostService.Setup(s => s.GetPostsAsync(parameters, It.IsAny<string>())).ThrowsAsync(new Exception("Test exception"));
+            _mockPostService
+                .Setup(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Test exception"));
 
             // Act
             var result = await _controller.GetPosts(parameters);
@@ -95,9 +99,10 @@ namespace NetFora.Tests.Controllers
         {
             // Arrange
             int postId = 1;
-            // Assuming PostDetailDto is a valid DTO with an Id and Title property
             var expectedPost = new PostDetailDto { Id = postId, Title = "Specific Post" };
-            _mockPostService.Setup(s => s.GetPostByIdAsync(postId, It.IsAny<string>())).ReturnsAsync(expectedPost);
+            _mockPostService
+                .Setup(s => s.GetPostByIdAsync(postId, It.IsAny<string>()))
+                .ReturnsAsync(expectedPost);
 
             // Act
             var result = await _controller.GetPost(postId);
@@ -114,7 +119,9 @@ namespace NetFora.Tests.Controllers
         {
             // Arrange
             int postId = 1;
-            _mockPostService.Setup(s => s.GetPostByIdAsync(postId, It.IsAny<string>())).ReturnsAsync((PostDetailDto)null);
+            _mockPostService
+                .Setup(s => s.GetPostByIdAsync(postId, It.IsAny<string>()))
+                .ReturnsAsync((PostDetailDto?)null);
 
             // Act
             var result = await _controller.GetPost(postId);
@@ -129,7 +136,9 @@ namespace NetFora.Tests.Controllers
             // Arrange
             var request = new CreatePostRequest { Title = "New Post", Content = "Post content" };
             var expectedPost = new PostDto { Id = 10, Title = "New Post", Content = "Post content" };
-            _mockPostService.Setup(s => s.CreatePostAsync(request, It.IsAny<string>())).ReturnsAsync(expectedPost);
+            _mockPostService
+                .Setup(s => s.CreatePostAsync(It.IsAny<CreatePostRequest>(), It.IsAny<string>()))
+                .ReturnsAsync(expectedPost);
 
             // Act
             var result = await _controller.CreatePost(request);
@@ -137,8 +146,8 @@ namespace NetFora.Tests.Controllers
             // Assert
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
             Assert.Equal(nameof(PostsController.GetPost), createdAtActionResult.ActionName);
-            Assert.Equal(expectedPost.Id, ((PostDto)createdAtActionResult.Value).Id);
-            Assert.Equal("New Post", ((PostDto)createdAtActionResult.Value).Title);
+            Assert.Equal(expectedPost.Id, ((PostDto)createdAtActionResult.Value!).Id);
+            Assert.Equal("New Post", ((PostDto)createdAtActionResult.Value!).Title);
         }
 
         [Fact]
@@ -177,7 +186,9 @@ namespace NetFora.Tests.Controllers
         {
             // Arrange
             var request = new CreatePostRequest { Title = "New Post", Content = "Post content" };
-            _mockPostService.Setup(s => s.CreatePostAsync(request, It.IsAny<string>())).ThrowsAsync(new Exception("Test exception"));
+            _mockPostService
+                .Setup(s => s.CreatePostAsync(It.IsAny<CreatePostRequest>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Test exception"));
 
             // Act
             var result = await _controller.CreatePost(request);
@@ -194,6 +205,198 @@ namespace NetFora.Tests.Controllers
                     It.IsAny<Exception>(),
                     It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
                 Times.Once);
+        }
+
+        [Theory]
+        [InlineData(1, 10)]
+        [InlineData(2, 5)]
+        [InlineData(1, 50)]
+        public async Task GetPosts_WithDifferentPaginationParameters_ReturnsCorrectPage(int page, int pageSize)
+        {
+            // Arrange
+            var parameters = new PostQueryParameters { Page = page, PageSize = pageSize };
+            var expectedResult = new PagedResult<PostDto>
+            {
+                Items = new List<PostDto> { new PostDto { Id = 1 } },
+                TotalCount = 100,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            _mockPostService
+                .Setup(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), It.IsAny<string>()))
+                .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _controller.GetPosts(parameters);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var pagedResult = Assert.IsType<PagedResult<PostDto>>(okResult.Value);
+            Assert.Equal(page, pagedResult.Page);
+            Assert.Equal(pageSize, pagedResult.PageSize);
+        }
+
+        [Fact]
+        public async Task GetPosts_WithSearchAndFilterParameters_PassesCorrectParametersToService()
+        {
+            // Arrange
+            var parameters = new PostQueryParameters
+            {
+                SearchTerm = "test",
+                AuthorUserName = "author",
+                MinLikes = 5,
+                DateFrom = DateTime.Now.AddDays(-7)
+            };
+            var expectedResult = new PagedResult<PostDto>
+            {
+                Items = new List<PostDto>(),
+                TotalCount = 0,
+                Page = 1,
+                PageSize = 10
+            };
+
+            _mockPostService
+                .Setup(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), It.IsAny<string>()))
+                .ReturnsAsync(expectedResult);
+
+            // Act
+            await _controller.GetPosts(parameters);
+
+            // Assert
+            _mockPostService.Verify(s => s.GetPostsAsync(
+                It.Is<PostQueryParameters>(p =>
+                    p.SearchTerm == "test" &&
+                    p.AuthorUserName == "author" &&
+                    p.MinLikes == 5),
+                It.IsAny<string>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task CreatePost_WithInvalidTitle_ReturnsBadRequest(string title)
+        {
+            // Arrange
+            var request = new CreatePostRequest { Title = title, Content = "Valid content" };
+            _controller.ModelState.AddModelError("Title", "Title is required.");
+
+            // Act
+            var result = await _controller.CreatePost(request);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result.Result);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(int.MaxValue)]
+        public async Task GetPost_WithEdgeCaseIds_HandlesGracefully(int postId)
+        {
+            // Arrange
+            _mockPostService
+                .Setup(s => s.GetPostByIdAsync(postId, It.IsAny<string>()))
+                .ReturnsAsync((PostDetailDto?)null);
+
+            // Act
+            var result = await _controller.GetPost(postId);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task GetPosts_WithAnonymousUser_ReturnsPostsWithoutUserSpecificData()
+        {
+            // Arrange
+            var parameters = new PostQueryParameters();
+            var expectedResult = new PagedResult<PostDto>
+            {
+                Items = new List<PostDto> { new PostDto { Id = 1, Title = "Public Post" } },
+                TotalCount = 1,
+                Page = 1,
+                PageSize = 10
+            };
+
+            // Setup controller with no authenticated user
+            _controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = new DefaultHttpContext() { User = new ClaimsPrincipal(new ClaimsIdentity()) }
+            };
+
+            _mockPostService
+                .Setup(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), null))
+                .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _controller.GetPosts(parameters);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var pagedResult = Assert.IsType<PagedResult<PostDto>>(okResult.Value);
+            Assert.Single(pagedResult.Items);
+
+            // Verify that service was called with null user ID
+            _mockPostService.Verify(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), null), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreatePost_WithMaxLengthTitle_CreatesSuccessfully()
+        {
+            // Arrange
+            var longTitle = new string('a', 200); // Max length according to your Post entity
+            var request = new CreatePostRequest { Title = longTitle, Content = "Content" };
+            var expectedPost = new PostDto { Id = 1, Title = longTitle, Content = "Content" };
+
+            _mockPostService
+                .Setup(s => s.CreatePostAsync(It.IsAny<CreatePostRequest>(), It.IsAny<string>()))
+                .ReturnsAsync(expectedPost);
+
+            // Act
+            var result = await _controller.CreatePost(request);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+            var createdPost = Assert.IsType<PostDto>(createdAtActionResult.Value);
+            Assert.Equal(longTitle, createdPost.Title);
+        }
+
+        [Fact]
+        public async Task GetPosts_WithComplexSortingAndFiltering_ReturnsCorrectResults()
+        {
+            // Arrange
+            var parameters = new PostQueryParameters
+            {
+                SortBy = PostSortBy.LikeCount,
+                SortDirection = SortDirection.Descending,
+                HasComments = true,
+                MinLikes = 10
+            };
+            var expectedResult = new PagedResult<PostDto>
+            {
+                Items = new List<PostDto>
+                {
+                    new PostDto { Id = 1, Title = "Popular Post", LikeCount = 15, CommentCount = 5 }
+                },
+                TotalCount = 1,
+                Page = 1,
+                PageSize = 10
+            };
+
+            _mockPostService
+                .Setup(s => s.GetPostsAsync(It.IsAny<PostQueryParameters>(), It.IsAny<string>()))
+                .ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _controller.GetPosts(parameters);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var pagedResult = Assert.IsType<PagedResult<PostDto>>(okResult.Value);
+            Assert.Single(pagedResult.Items);
+            Assert.True(pagedResult.Items.First().LikeCount >= 10);
+            Assert.True(pagedResult.Items.First().CommentCount > 0);
         }
     }
 }

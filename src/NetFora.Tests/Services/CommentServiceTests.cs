@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NetFora.Application.DTOs.Requests;
 using NetFora.Application.Interfaces.Repositories;
+using NetFora.Application.QueryParameters;
 using NetFora.Application.Services;
 using NetFora.Domain.Entities;
 using NetFora.Domain.Events;
@@ -77,5 +80,139 @@ namespace NetFora.Tests.Services
             _commentRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Comment>()), Times.Never);
             _eventServiceMock.Verify(e => e.PublishCommentEventAsync(It.IsAny<CommentEvent>()), Times.Never);
         }
+
+        [Fact]
+        public async Task GetCommentsForPostAsync_WithValidParameters_ReturnsPagedComments()
+        {
+            // Arrange
+            var postId = 1;
+            var parameters = new CommentQueryParameters { Page = 1, PageSize = 10 };
+            var comments = new List<Comment>
+    {
+        new Comment { Id = 1, Content = "Comment 1", Author = new ApplicationUser { DisplayName = "User1" } },
+        new Comment { Id = 2, Content = "Comment 2", Author = new ApplicationUser { DisplayName = "User2" } }
+    };
+
+            _commentRepositoryMock.Setup(r => r.GetCommentsForPostAsync(postId, parameters)).ReturnsAsync(comments);
+            _commentRepositoryMock.Setup(r => r.GetTotalCountForPostAsync(postId, parameters)).ReturnsAsync(2);
+
+            // Act
+            var result = await _sut.GetCommentsForPostAsync(postId, parameters, "current-user");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Items.Count());
+            Assert.Equal(2, result.TotalCount);
+        }
+
+        [Fact]
+        public async Task GetCommentsForPostAsync_WithModerationFlags_FiltersCorrectly()
+        {
+            // Arrange
+            var postId = 1;
+            var parameters = new CommentQueryParameters { ModerationFlags = 1 }; // Misleading flag
+            var flaggedComments = new List<Comment>
+    {
+        new Comment { Id = 1, Content = "Flagged comment", ModerationFlags = 1, Author = new ApplicationUser() }
+    };
+
+            _commentRepositoryMock.Setup(r => r.GetCommentsForPostAsync(postId, parameters)).ReturnsAsync(flaggedComments);
+            _commentRepositoryMock.Setup(r => r.GetTotalCountForPostAsync(postId, parameters)).ReturnsAsync(1);
+
+            // Act
+            var result = await _sut.GetCommentsForPostAsync(postId, parameters);
+
+            // Assert
+            Assert.Single(result.Items);
+            Assert.True(result.Items.First().IsMisleading);
+        }
+
+        [Fact]
+        public async Task GetCommentByIdAsync_CommentExists_ReturnsCommentDto()
+        {
+            // Arrange
+            var commentId = 1;
+            var currentUserId = "user-1";
+            var comment = new Comment
+            {
+                Id = commentId,
+                Content = "Test comment",
+                AuthorId = currentUserId,
+                Author = new ApplicationUser { DisplayName = "Test User", UserName = "testuser" }
+            };
+
+            _commentRepositoryMock.Setup(r => r.GetByIdAsync(commentId)).ReturnsAsync(comment);
+
+            // Act
+            var result = await _sut.GetCommentByIdAsync(commentId, currentUserId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(commentId, result.Id);
+            Assert.Equal("Test comment", result.Content);
+            Assert.True(result.IsCurrentUserAuthor);
+        }
+
+        [Fact]
+        public async Task GetCommentByIdAsync_CommentDoesNotExist_ReturnsNull()
+        {
+            // Arrange
+            var commentId = 999;
+            _commentRepositoryMock.Setup(r => r.GetByIdAsync(commentId)).ReturnsAsync((Comment?)null);
+
+            // Act
+            var result = await _sut.GetCommentByIdAsync(commentId, "user-1");
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task CreateCommentAsync_RepositoryThrowsException_ThrowsAndLogsError()
+        {
+            // Arrange
+            var request = new CreateCommentRequest { PostId = 1, Content = "Test comment" };
+            var authorId = "user-1";
+
+            _postRepositoryMock.Setup(r => r.ExistsAsync(request.PostId)).ReturnsAsync(true);
+            _commentRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Comment>()))
+                .ThrowsAsync(new InvalidOperationException("Database error"));
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _sut.CreateCommentAsync(request, authorId));
+
+            Assert.Equal("Database error", exception.Message);
+        }
+
+        [Fact]
+        public async Task CommentExistsAsync_CommentExists_ReturnsTrue()
+        {
+            // Arrange
+            var commentId = 1;
+            _commentRepositoryMock.Setup(r => r.ExistsAsync(commentId)).ReturnsAsync(true);
+
+            // Act
+            var result = await _sut.CommentExistsAsync(commentId);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task IsUserCommentAuthorAsync_UserIsAuthor_ReturnsTrue()
+        {
+            // Arrange
+            var commentId = 1;
+            var userId = "user-1";
+            _commentRepositoryMock.Setup(r => r.IsUserAuthorAsync(commentId, userId)).ReturnsAsync(true);
+
+            // Act
+            var result = await _sut.IsUserCommentAuthorAsync(commentId, userId);
+
+            // Assert
+            Assert.True(result);
+        }
+
     }
 }

@@ -253,5 +253,53 @@ namespace NetFora.Tests.Controllers
                     It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
                 Times.Once);
         }
+
+        [Fact]
+        public async Task LikePost_AlreadyLiked_ReturnsBadRequest()
+        {
+            // Arrange
+            int postId = 1;
+            string userId = "testUserId";
+            _mockPostService.Setup(s => s.PostExistsAsync(postId)).ReturnsAsync(true);
+            _mockLikeService.Setup(s => s.LikePostAsync(postId, userId)).ReturnsAsync(false); // Already liked
+
+            // Act
+            var result = await _controller.LikePost(postId);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Contains("already be liked", badRequestResult.Value.ToString());
+        }
+
+        [Fact]
+        public async Task GetLikeCount_WithValidPost_ReturnsCount()
+        {
+            // Arrange
+            int postId = 1;
+            int expectedCount = 42;
+            _mockPostService.Setup(s => s.PostExistsAsync(postId)).ReturnsAsync(true);
+            _mockLikeService.Setup(s => s.GetLikeCountAsync(postId)).ReturnsAsync(expectedCount);
+
+            // Act
+            var result = await _controller.GetLikeCount(postId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(expectedCount, okResult.Value);
+        }
+
+        [Fact]
+        public async Task Controller_WithInvalidPostId_ReturnsNotFound()
+        {
+            // Arrange
+            int invalidPostId = -1;
+            _mockPostService.Setup(s => s.PostExistsAsync(invalidPostId)).ReturnsAsync(false);
+
+            // Act
+            var result = await _controller.GetLikeCount(invalidPostId);
+
+            // Assert
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+        }
     }
 }

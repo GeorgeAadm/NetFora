@@ -99,5 +99,134 @@ namespace NetFora.Tests.Services
         Assert.False(result);
         _eventServiceMock.Verify(e => e.PublishLikeEventAsync(It.IsAny<LikeEvent>()), Times.Never);
     }
+
+        [Fact]
+        public async Task IsPostLikedByUserAsync_PostIsLiked_ReturnsTrue()
+        {
+            // Arrange
+            var postId = 1;
+            var userId = "user-1";
+            _likeRepositoryMock.Setup(r => r.ExistsAsync(postId, userId)).ReturnsAsync(true);
+
+            // Act
+            var result = await _sut.IsPostLikedByUserAsync(postId, userId);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task IsPostLikedByUserAsync_PostNotLiked_ReturnsFalse()
+        {
+            // Arrange
+            var postId = 1;
+            var userId = "user-1";
+            _likeRepositoryMock.Setup(r => r.ExistsAsync(postId, userId)).ReturnsAsync(false);
+
+            // Act
+            var result = await _sut.IsPostLikedByUserAsync(postId, userId);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task GetLikeCountAsync_ReturnsCorrectCount()
+        {
+            // Arrange
+            var postId = 1;
+            var expectedCount = 5;
+            _likeRepositoryMock.Setup(r => r.GetLikeCountAsync(postId)).ReturnsAsync(expectedCount);
+
+            // Act
+            var result = await _sut.GetLikeCountAsync(postId);
+
+            // Assert
+            Assert.Equal(expectedCount, result);
+        }
+
+        [Fact]
+        public async Task LikePostAsync_EventServiceThrows_ThrowsException()
+        {
+            // Arrange
+            var postId = 1;
+            var userId = "user-1";
+            _likeRepositoryMock.Setup(r => r.CanUserLikePostAsync(postId, userId)).ReturnsAsync(true);
+            _eventServiceMock.Setup(e => e.PublishLikeEventAsync(It.IsAny<LikeEvent>()))
+                .ThrowsAsync(new InvalidOperationException("Event service error"));
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _sut.LikePostAsync(postId, userId));
+
+            Assert.Equal("Event service error", exception.Message);
+        }
+
+        [Fact]
+        public async Task UnlikePostAsync_EventServiceThrows_ThrowsException()
+        {
+            // Arrange
+            var postId = 1;
+            var userId = "user-1";
+            _likeRepositoryMock.Setup(r => r.ExistsAsync(postId, userId)).ReturnsAsync(true);
+            _eventServiceMock.Setup(e => e.PublishLikeEventAsync(It.IsAny<LikeEvent>()))
+                .ThrowsAsync(new InvalidOperationException("Event service error"));
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _sut.UnlikePostAsync(postId, userId));
+
+            Assert.Equal("Event service error", exception.Message);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData(null)]
+        public async Task LikePostAsync_WithInvalidUserId_ReturnsFalse(string userId)
+        {
+            // Arrange
+            var postId = 1;
+            _likeRepositoryMock.Setup(r => r.CanUserLikePostAsync(postId, userId)).ReturnsAsync(false);
+
+            // Act
+            var result = await _sut.LikePostAsync(postId, userId);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task LikePostAsync_UserTriesToLikeOwnPost_ReturnsFalse()
+        {
+            // Arrange
+            var postId = 1;
+            var userId = "post-author";
+            // Simulate that CanUserLikePostAsync returns false because user is the post author
+            _likeRepositoryMock.Setup(r => r.CanUserLikePostAsync(postId, userId)).ReturnsAsync(false);
+
+            // Act
+            var result = await _sut.LikePostAsync(postId, userId);
+
+            // Assert
+            Assert.False(result);
+            _eventServiceMock.Verify(e => e.PublishLikeEventAsync(It.IsAny<LikeEvent>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UnlikePostAsync_UserTriesToUnlikeNotLikedPost_ReturnsFalse()
+        {
+            // Arrange
+            var postId = 1;
+            var userId = "user-1";
+            _likeRepositoryMock.Setup(r => r.ExistsAsync(postId, userId)).ReturnsAsync(false);
+
+            // Act
+            var result = await _sut.UnlikePostAsync(postId, userId);
+
+            // Assert
+            Assert.False(result);
+            _eventServiceMock.Verify(e => e.PublishLikeEventAsync(It.IsAny<LikeEvent>()), Times.Never);
+        }
 }
 }
