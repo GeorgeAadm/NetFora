@@ -235,5 +235,66 @@ namespace NetFora.Tests.Controllers
                     It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
                 Times.Once);
         }
+        [Theory]
+        [InlineData(CommentSortBy.CreatedDate, SortDirection.Ascending)]
+        [InlineData(CommentSortBy.CreatedDate, SortDirection.Descending)]
+        [InlineData(CommentSortBy.AuthorName, SortDirection.Ascending)]
+        public async Task GetComments_WithDifferentSortingOptions_PassesCorrectParameters(CommentSortBy sortBy, SortDirection direction)
+        {
+            // Arrange
+            int postId = 1;
+            var parameters = new CommentQueryParameters { SortBy = sortBy, SortDirection = direction };
+            var expectedResult = new PagedResult<CommentDto>(new List<CommentDto>(), 0, 1, 20);
+
+            _mockPostService.Setup(s => s.PostExistsAsync(postId)).ReturnsAsync(true);
+            _mockCommentService.Setup(s => s.GetCommentsForPostAsync(postId, parameters, It.IsAny<string>())).ReturnsAsync(expectedResult);
+
+            // Act
+            await _controller.GetComments(postId, parameters);
+
+            // Assert
+            _mockCommentService.Verify(s => s.GetCommentsForPostAsync(postId,
+                It.Is<CommentQueryParameters>(p => p.SortBy == sortBy && p.SortDirection == direction),
+                It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetComments_WithModerationFlagsFilter_FiltersCorrectly()
+        {
+            // Arrange
+            int postId = 1;
+            var parameters = new CommentQueryParameters { ModerationFlags = 1 }; // Misleading flag
+            var expectedResult = new PagedResult<CommentDto>(
+                new List<CommentDto> { new CommentDto { Id = 1, ModerationFlags = 1 } },
+                1, 1, 20
+            );
+
+            _mockPostService.Setup(s => s.PostExistsAsync(postId)).ReturnsAsync(true);
+            _mockCommentService.Setup(s => s.GetCommentsForPostAsync(postId, parameters, It.IsAny<string>())).ReturnsAsync(expectedResult);
+
+            // Act
+            var result = await _controller.GetComments(postId, parameters);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var pagedResult = Assert.IsType<PagedResult<CommentDto>>(okResult.Value);
+            Assert.True(pagedResult.Items.First().IsMisleading);
+        }
+
+        [Theory]
+        [InlineData(2001)] // Exceeds max length
+        public async Task CreateComment_WithContentTooLong_ReturnsBadRequest(int contentLength)
+        {
+            // Arrange
+            var longContent = new string('a', contentLength);
+            var request = new CreateCommentRequest { PostId = 1, Content = longContent };
+            _controller.ModelState.AddModelError("Content", "Comment cannot exceed 2000 characters");
+
+            // Act
+            var result = await _controller.CreateComment(request);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result.Result);
+        }
     }
 }
